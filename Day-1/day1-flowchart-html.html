@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Day 1 — MLOps Pipeline Flowchart</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+<style>
+  body {
+    background: #0a0a0f;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 40px;
+    font-family: 'Segoe UI', sans-serif;
+  }
+  .container {
+    background: #111118;
+    border: 1px solid #2a2a3a;
+    border-radius: 16px;
+    padding: 40px;
+    max-width: 1200px;
+    width: 100%;
+  }
+  h1 {
+    text-align: center;
+    color: #60a5fa;
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+  }
+  .mermaid {
+    display: flex;
+    justify-content: center;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>MLOps Pipeline — Day 1: Model Training to Deployment</h1>
+  <div class="mermaid">
+flowchart TD
+    A["📊 Raw Dataset<br/>5,110 patients"] --> B["🧹 Preprocessing<br/>preprocess.py"]
+    
+    B --> C["📂 Clean Data<br/>4,253 records<br/>Drop ID, Filter age≥18, Impute BMI"]
+    
+    C --> D["✂️ Stratified Split 80/20"]
+    
+    D --> E["🏋️ Train Set<br/>3,402 records"]
+    D --> F["🧪 Test Set<br/>851 records"]
+    D --> G["📏 Reference Set<br/>500 records<br/>for drift detection"]
+    
+    E --> H["🧠 Model Training<br/>train.py"]
+    
+    H --> H1["Logistic Regression<br/>8 configs"]
+    H --> H2["Random Forest<br/>12 configs"]
+    H --> H3["Gradient Boosting<br/>8 configs"]
+    
+    H1 --> I["📊 MLflow Tracking<br/>28 runs logged"]
+    H2 --> I
+    H3 --> I
+    
+    I --> J["🏆 Best Model<br/>RandomForest_009<br/>F1 = 0.2543"]
+    
+    J --> K["📦 MLflow Registry<br/>stroke-classifier v1"]
+    
+    K --> L["✅ Evaluation<br/>evaluate.py"]
+    F --> L
+    
+    L --> M{"F1 ≥ Threshold?"}
+    
+    M -->|"Yes ✅"| N["🏆 Champion Alias"]
+    M -->|"No ❌"| O["Reject / Retrain"]
+    
+    N --> P["📤 Export Model<br/>models/champion/"]
+    
+    P --> Q["🌐 FastAPI + UI<br/>app.py"]
+    
+    Q --> R["🐳 Docker<br/>stroke-mlops:v1"]
+    
+    R --> S["🧪 32 Tests<br/>pytest"]
+    
+    S --> T["🔄 GitHub Actions CI"]
+    
+    T --> U["✅ All Green<br/>4m 45s"]
+
+    style A fill:#1e3a5f,stroke:#60a5fa,color:#e2e8f0
+    style C fill:#1e3a5f,stroke:#60a5fa,color:#e2e8f0
+    style I fill:#2d1b69,stroke:#a78bfa,color:#e2e8f0
+    style J fill:#14532d,stroke:#4ade80,color:#e2e8f0
+    style K fill:#4a1d96,stroke:#a78bfa,color:#e2e8f0
+    style N fill:#14532d,stroke:#4ade80,color:#e2e8f0
+    style O fill:#7f1d1d,stroke:#f87171,color:#e2e8f0
+    style Q fill:#1e3a5f,stroke:#60a5fa,color:#e2e8f0
+    style R fill:#1e3a5f,stroke:#60a5fa,color:#e2e8f0
+    style T fill:#4a3000,stroke:#fb923c,color:#e2e8f0
+    style U fill:#14532d,stroke:#4ade80,color:#e2e8f0
+  </div>
+</div>
+<script>
+  mermaid.initialize({ 
+    startOnLoad: true, 
+    theme: 'dark',
+    flowchart: { curve: 'basis', padding: 15 }
+  });
+</script>
+</body>
+</html>

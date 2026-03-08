@@ -1,0 +1,137 @@
+# Quick Reference — Commands & URLs Day-1
+
+## Terminal Commands (run from project root)
+
+### 1. Activate Virtual Environment
+```
+# Windows
+mlopsvenv\Scripts\activate
+```
+
+### 2. Install Dependencies
+```
+pip install -r requirements.txt
+```
+
+### 3. Preprocessing
+```
+python src/training/preprocess.py
+```
+
+### 4. Train Models (28 experiments)
+```
+python src/training/train.py
+```
+
+### 5. Evaluate & Promote Champion
+```
+python src/training/evaluate.py
+```
+
+### 6. Export Model for Docker
+```
+python src/training/export_model.py
+```
+
+### 7. Run Tests
+```
+pytest tests/ -v
+```
+
+### 8. Start MLflow UI
+```
+mlflow ui --backend-store-uri file:///C:/Users/Admin/OneDrive/Desktop/stroke-prediction-mlops/mlruns
+```
+
+### 9. Start UI  
+```
+python src/serving/app.py
+http://localhost:8000
+
+```
+
+### 10. Docker Build & Run
+```
+docker build -t stroke-mlops:v1 .
+docker run -p 8000:8000 stroke-mlops:v1
+```
+
+### 11. Git Push
+```
+git add .
+git commit -m "your message"
+git push origin main
+```
+
+---
+
+## URLs (open in browser)
+
+| What | URL |
+|---|---|
+| MLflow UI | http://localhost:5000 |
+| FastAPI App (UI) | http://localhost:8000 |
+| Swagger API Docs | http://localhost:8000/docs |
+| Health Check | http://localhost:8000/health |
+| Model Info | http://localhost:8000/model-info |
+| GitHub Repo | https://github.com/basudev2016/stroke-prediction-mlops |
+| GitHub Actions | https://github.com/basudev2016/stroke-prediction-mlops/actions |
+
+---
+
+## Sample JSON for /predict (Swagger)
+
+### High-Risk Patient (expects Stroke)
+```json
+{
+  "gender": "Male",
+  "age": 80,
+  "hypertension": 1,
+  "heart_disease": 1,
+  "ever_married": "Yes",
+  "work_type": "Private",
+  "Residence_type": "Urban",
+  "avg_glucose_level": 250.0,
+  "bmi": 36.0,
+  "smoking_status": "smokes"
+}
+```
+
+### Low-Risk Patient (expects No Stroke)
+```json
+{
+  "gender": "Female",
+  "age": 25,
+  "hypertension": 0,
+  "heart_disease": 0,
+  "ever_married": "No",
+  "work_type": "Private",
+  "Residence_type": "Urban",
+  "avg_glucose_level": 75.0,
+  "bmi": 24.0,
+  "smoking_status": "never smoked"
+}
+```
+
+---
+
+## Execution Order (Full Demo Flow)
+
+```
+Step 1:  python src/training/preprocess.py
+Step 2:  python src/training/train.py
+Step 3:  python src/training/evaluate.py
+Step 4:  mlflow ui --backend-store-uri file:///C:/Users/Admin/OneDrive/Desktop/stroke-prediction-mlops/mlruns
+         → Open http://localhost:5000 (explore, then Ctrl+C to stop)
+Step 5:  python src/serving/app.py
+         → Open http://localhost:8000 (UI)
+         → Open http://localhost:8000/docs (Swagger)
+Step 6:  python src/training/export_model.py
+Step 7:  docker build -t stroke-mlops:v1 .
+Step 8:  docker run -p 8000:8000 stroke-mlops:v1
+         → Open http://localhost:8000
+Step 9:  git add . && git commit -m "message" && git push origin main
+         → Open https://github.com/basudev2016/stroke-prediction-mlops/actions
+```
+
+**Note:** Stop each server (Ctrl+C) before starting the next one if they use the same port.

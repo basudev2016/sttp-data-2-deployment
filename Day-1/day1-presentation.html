@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MLOps: Model Training to Deployment</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #0a0a0f;
+    color: #e4e4e7;
+    overflow-x: hidden;
+  }
+
+  /* ── Slide System ── */
+  .slide {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px 80px;
+    position: relative;
+    border-bottom: 1px solid #1a1a2e;
+  }
+
+  .slide-number {
+    position: absolute;
+    top: 30px;
+    right: 40px;
+    font-size: 0.75rem;
+    color: #4a4a5a;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* ── Title Slide ── */
+  .title-slide {
+    background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 50%, #0a0a1a 100%);
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .title-slide h1 {
+    font-size: 3.2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+  }
+
+  .title-slide .subtitle {
+    font-size: 1.4rem;
+    color: #94a3b8;
+    font-weight: 300;
+    margin-bottom: 2.5rem;
+  }
+
+  .title-slide .date-info {
+    font-size: 1rem;
+    color: #64748b;
+    margin-bottom: 2rem;
+  }
+
+  .presenter {
+    display: inline-flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 16px 28px;
+    margin-top: 1rem;
+  }
+
+  .presenter-avatar {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 1.1rem; color: #fff;
+  }
+
+  .presenter-info { text-align: left; }
+  .presenter-name { font-weight: 600; font-size: 1.05rem; color: #e2e8f0; }
+  .presenter-role { font-size: 0.85rem; color: #94a3b8; }
+
+  /* ── Section Headers ── */
+  h2 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #f1f5f9;
+  }
+
+  h2 .accent { color: #60a5fa; }
+
+  h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #cbd5e1;
+    margin-bottom: 1rem;
+  }
+
+  p, li {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #a1a1aa;
+  }
+
+  .lead {
+    font-size: 1.3rem;
+    color: #94a3b8;
+    max-width: 800px;
+    margin-bottom: 2rem;
+  }
+
+  /* ── Cards ── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 1.5rem;
+  }
+
+  .card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 24px;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(96,165,250,0.3);
+  }
+
+  .card-icon { font-size: 2rem; margin-bottom: 12px; }
+  .card h4 { font-size: 1.1rem; font-weight: 600; color: #e2e8f0; margin-bottom: 8px; }
+  .card p { font-size: 0.95rem; color: #71717a; }
+
+  /* ── Screenshot Container ── */
+  .screenshot {
+    background: #111118;
+    border: 1px solid #2a2a3a;
+    border-radius: 12px;
+    padding: 8px;
+    margin: 1.5rem 0;
+    text-align: center;
+  }
+
+  .screenshot img {
+    max-width: 100%;
+    border-radius: 8px;
+  }
+
+  .screenshot-placeholder {
+    background: linear-gradient(135deg, #1a1a2e, #16163a);
+    border-radius: 8px;
+    padding: 60px 40px;
+    color: #4a4a6a;
+    font-size: 0.9rem;
+    text-align: center;
+    min-height: 350px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .screenshot-placeholder .ph-icon { font-size: 2.5rem; opacity: 0.5; }
+  .screenshot-placeholder .ph-label { font-weight: 600; color: #6a6a8a; }
+  .screenshot-placeholder .ph-file { font-size: 0.8rem; color: #3a3a5a; }
+
+  .caption {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #52525b;
+    margin-top: 8px;
+    font-style: italic;
+  }
+
+  /* ── Lifecycle Diagram ── */
+  .lifecycle-container {
+    display: flex;
+    justify-content: center;
+    margin: 2rem 0;
+  }
+
+  .lifecycle {
+    display: flex;
+    gap: 0;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .lifecycle-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 16px;
+    min-width: 120px;
+    position: relative;
+  }
+
+  .lifecycle-icon {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+  }
+
+  .lifecycle-step .step-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    text-align: center;
+  }
+
+  .lifecycle-step .step-tool {
+    font-size: 0.7rem;
+    color: #60a5fa;
+    text-align: center;
+    margin-top: 2px;
+  }
+
+  .lifecycle-arrow {
+    font-size: 1.5rem;
+    color: #3a3a5a;
+    margin: 0 -5px;
+    padding-bottom: 20px;
+  }
+
+  .lc-blue .lifecycle-icon { background: rgba(96,165,250,0.15); }
+  .lc-purple .lifecycle-icon { background: rgba(167,139,250,0.15); }
+  .lc-green .lifecycle-icon { background: rgba(74,222,128,0.15); }
+  .lc-orange .lifecycle-icon { background: rgba(251,146,60,0.15); }
+  .lc-red .lifecycle-icon { background: rgba(248,113,113,0.15); }
+  .lc-cyan .lifecycle-icon { background: rgba(34,211,238,0.15); }
+
+  /* ── Problem Statement ── */
+  .problem-box {
+    background: linear-gradient(135deg, rgba(248,113,113,0.08), rgba(248,113,113,0.02));
+    border: 1px solid rgba(248,113,113,0.2);
+    border-left: 4px solid #f87171;
+    border-radius: 8px;
+    padding: 24px 28px;
+    margin: 1.5rem 0;
+  }
+
+  .solution-box {
+    background: linear-gradient(135deg, rgba(74,222,128,0.08), rgba(74,222,128,0.02));
+    border: 1px solid rgba(74,222,128,0.2);
+    border-left: 4px solid #4ade80;
+    border-radius: 8px;
+    padding: 24px 28px;
+    margin: 1.5rem 0;
+  }
+
+  .problem-box h4 { color: #fca5a5; margin-bottom: 8px; }
+  .solution-box h4 { color: #86efac; margin-bottom: 8px; }
+
+  /* ── Two Column ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: start;
+  }
+
+  /* ── Stats Row ── */
+  .stats-row {
+    display: flex;
+    gap: 30px;
+    margin: 1.5rem 0;
+    flex-wrap: wrap;
+  }
+
+  .stat-item {
+    text-align: center;
+    padding: 16px 24px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    min-width: 130px;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #60a5fa;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+    color: #71717a;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* ── Highlight ── */
+  .highlight-text {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    text-align: center;
+    padding: 2rem;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .highlight-text em {
+    color: #60a5fa;
+    font-style: normal;
+  }
+
+  /* ── Tool Stack Table ── */
+  .tool-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 0.95rem;
+  }
+
+  .tool-table th {
+    text-align: left;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.05);
+    color: #94a3b8;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid #2a2a3a;
+  }
+
+  .tool-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: #a1a1aa;
+  }
+
+  .tool-table td:first-child { color: #e2e8f0; font-weight: 500; }
+  .tool-badge {
+    display: inline-block;
+    background: rgba(96,165,250,0.12);
+    color: #60a5fa;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  /* ── CTA Slide ── */
+  .cta-slide {
+    text-align: center;
+    align-items: center;
+  }
+
+  .contact-card {
+    display: inline-block;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 32px 48px;
+    margin-top: 2rem;
+    text-align: center;
+  }
+
+  .contact-card .cc-name { font-size: 1.3rem; font-weight: 700; color: #f1f5f9; }
+  .contact-card .cc-role { font-size: 0.95rem; color: #94a3b8; margin: 4px 0 16px; }
+  .contact-card .cc-item {
+    display: flex; align-items: center; gap: 10px;
+    justify-content: center;
+    font-size: 0.95rem; color: #a1a1aa;
+    margin: 6px 0;
+  }
+
+  .cc-item .cc-icon { color: #60a5fa; }
+
+  /* ── Day 2 Preview ── */
+  .preview-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .preview-list li {
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .preview-list li:last-child { border: none; }
+  .preview-list .tag {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .tag-docker { background: rgba(96,165,250,0.15); color: #60a5fa; }
+  .tag-cloud { background: rgba(74,222,128,0.15); color: #4ade80; }
+  .tag-cicd { background: rgba(251,146,60,0.15); color: #fb923c; }
+  .tag-monitor { background: rgba(167,139,250,0.15); color: #a78bfa; }
+
+  /* ── Navigation ── */
+  .nav-hint {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0,0,0,0.6);
+    color: #52525b;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .slide { padding: 40px 30px; }
+    .title-slide h1 { font-size: 2.2rem; }
+    h2 { font-size: 1.8rem; }
+    .two-col { grid-template-columns: 1fr; }
+    .lifecycle { gap: 0; }
+  }
+
+  @media print {
+    .slide { page-break-after: always; min-height: auto; padding: 30px; }
+    .nav-hint { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="nav-hint">↓ Scroll through slides</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SLIDE 1: Title -->
+<!-- ══════════════════════════════════════════ -->
+<section class="slide title-slide">
+  <div class="date-info">Day 11 — 9th March 2026 — 6:00 PM to 8:00 PM</div>
+  <h1>MLOps: Model Training<br>to Deployment</h1>
+  <p class="subtitle">From Jupyter Notebooks to Production Systems</p>
+  <div class="presenter">
+    <div class="presenter-avatar">BP</div>
+    <div class="presenter-info">
+      <div class="presenter-name">Basudev Panda</div>
+      <div class="presenter-role">Senior Manager — Data Scientist, MLOps Expert</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SLIDE 2: The Problem -->
+<!-- ══════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">01 / 14</span>
+  <h2>The <span class="accent">Problem</span></h2>
+  <p class="lead">Your student builds a brilliant model. Gets 95% accuracy. Gets an A+ grade. Then what?</p>
+
+  <div class="problem-box">
+    <h4>⚠️ The Reality of Most ML Projects</h4>
+    <p>The model lives in a Jupyter notebook on someone's laptop. Nobody can use it. Nobody can reproduce it. When the data changes, nobody retrains it. When it breaks in production, nobody knows.</p>
+  </div>
+
+  <div class="solution-box">
+    <h4>✅ What Production ML Looks Like</h4>
+    <p>The model is tracked, versioned, tested, containerized, deployed as an API, monitored for drift, and automatically retrained when needed. Every decision is auditable. Every experiment is reproducible.</p>
+  </div>
+
+  <div class="highlight-text">
+    <em>MLOps</em> is the discipline that bridges the gap between<br>a model that <em>works</em> and a model that <em>serves</em>.
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SLIDE 3: What is MLOps -->
+<!-- ══════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">02 / 14</span>
+  <h2>What is <span class="accent">MLOps</span>?</h2>
+  <p class="lead">MLOps is to Machine Learning what DevOps is to Software Engineering.</p>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">🧪</div>
+      <h4>Experiment Tracking</h4>
+      <p>Every model run is logged — parameters, metrics, artifacts. Nothing is lost. Everything is comparable.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📦</div>
+      <h4>Model Versioning</h4>
+      <p>Models are versioned like code. You can roll back, compare, and promote models through stages.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🚀</div>
+      <h4>Automated Deployment</h4>
+      <p>Push code → tests run → model deploys. No manual SSH, no "works on my machine" problems.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <h4>Monitoring & Drift Detection</h4>
+      <p>The system watches itself. When data drifts or predictions degrade, alerts fire automatically.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SLIDE 4: The MLOps Lifecycle -->
+<!-- ══════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">03 / 14</span>
+  <h2>The MLOps <span class="accent">Lifecycle</span></h2>
+  <p class="lead">Every production ML system follows this cycle. Today we'll walk through each stage with a real project.</p>
+
+  <div class="lifecycle-container">
+    <div class="lifecycle">
+      <div class="lifecycle-step lc-blue">
+        <div class="lifecycle-icon">📊</div>
+        <div class="step-label">Data<br>Preparation</div>
+        <div class="step-tool">Pandas, Sklearn</div>
+      </div>
+      <div class="lifecycle-arrow">→</div>
+      <div class="lifecycle-step lc-purple">
+        <div class="lifecycle-icon">🧠</div>
+        <div class="step-label">Model<br>Training</div>
+        <div class="step-tool">Scikit-learn</div>
+      </div>
+      <div class="lifecycle-arrow">→</div>
+      <div class="lifecycle-step lc-green">
+        <div class="lifecycle-icon">🧪</div>
+        <div class="step-label">Experiment<br>Tracking</div>
+        <div class="step-tool">MLflow</div>
+      </div>
+      <div class="lifecycle-arrow">→</div>
+      <div class="lifecycle-step lc-orange">
+        <div class="lifecycle-icon">📦</div>
+        <div class="step-label">Model<br>Registry</div>
+        <div class="step-tool">MLflow Registry</div>
+      </div>
+      <div class="lifecycle-arrow">→</div>
+      <div class="lifecycle-step lc-red">
+        <div class="lifecycle-icon">🌐</div>
+        <div class="step-label">API<br>Serving</div>
+        <div class="step-tool">FastAPI</div>
+      </div>
+      <div class="lifecycle-arrow">→</div>
+      <div class="lifecycle-step lc-cyan">
+        <div class="lifecycle-icon">🔄</div>
+        <div class="step-label">Version<br>Control</div>
+        <div class="step-tool">GitHub</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center; margin-top:1.5rem;">
+    <p style="color:#52525b; font-size:0.9rem;">Tomorrow we add: Docker → CI/CD → Cloud Deployment → Monitoring</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SLIDE 5: The Project -->
+<!-- ══════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">04 / 14</span>
+  <h2>The <span class="accent">Project</span>: Stroke Risk Prediction</h2>
+  <p class="lead">A binary classification model that predicts whether a patient is at risk of stroke, based on clinical and demographic features.</p>
+
+  <div class="two-col">
+    <div>
+      <h3>Dataset</h3>
+      <table class="tool-table">
+        <tr><td>Source</td><td>Kaggle Healthcare Dataset</td></tr>
+        <tr><td>Records</td><td>5,110 patients</td></tr>
+        <tr><td>After cleaning</td><td>4,253 adults (age ≥ 18)</td></tr>
+        <tr><td>Target</td><td>Stroke (Yes/No)</td></tr>
+        <tr><td>Class balance</td><td>94.2% No Stroke / 5.8% Stroke</td></tr>
+      </table>
+    </div>
+    <div>
+      <h3>Features</h3>
+      <table class="tool-table">
+        <tr><td>Numerical</td><td>Age, BMI, Avg Glucose Level</td></tr>
+        <tr><td>Binary</td><td>Hypertension, Heart Disease</td></tr>
+        <tr><td>Categorical</td><td>Gender, Marital Status, Work Type, Residence, Smoking Status</td></tr>
+      </table>
+      <div style="margin-top:1rem;">
+        <h3>Preprocessing</h3>
+        <p style="font-size:0.95rem;">Missing BMI values imputed with median. Categorical features one-hot encoded. Class imbalance handled with SMOTE oversampling.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SLIDE 6: Training at Scale -->
+<!-- ══════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">05 / 14</span>
+  <h2>Training <span class="accent">28 Models</span> Automatically</h2>
+  <p class="lead">Instead of manually tuning one model, we systematically explore 28 configurations across 3 algorithms — and track every single one.</p>
+
+  <div class="stats-row">
+    <div class="stat-item">
+      <div class="stat-value">3</div>
+      <div class="stat-label">Algorithms</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">28</div>
+      <div class="stat-label">Configurations</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">5-Fold</div>
+      <div class="stat-label">Cross Validation</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">140</div>
+      <div class="stat-label">Total Fits</div>
+    </div>
+  </div>
+
+  <table class="tool-table" style="max-width:700px;">
+    <thead>
+      <tr><th>Algorithm</th><th>Hyperparameters Varied</th><th>Runs</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Logistic Regression</td><td>C (regularization), class weight</td><td>8</td></tr>
+      <tr><td>Random Forest</td><td>n_estimators, max_depth, class weight</td><td>12</td></tr>
+      <tr><td>Gradient Boosting</td><td>n_estimators, max_depth, sample weight</td><td>8</td></tr>
+    </tbody>
+  </table>
+
+  <p style="margin-top:1.5rem; color:#71717a;">Every run is logged to <span class="tool-badge">MLflow</span> — parameters, metrics, model artifacts, confusion matrices. Nothing is lost.</p>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SLIDE 7: MLflow Experiment Tracking -->
+<!-- ══════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">06 / 14</span>
+  <h2>Experiment <span class="accent">Tracking</span> with MLflow</h2>
+  <p class="lead">All 28 runs, sortable by any metric. The best model rises to the top. Every decision is traceable.</p>
+
+  <div class="screenshot">
+    <div class="screenshot-placeholder">
+      <img src="image6.png" alt="Stroke Predicted" style="max-width:100%; border-radius:8px;">
+    </div>
+  </div>
+  <p class="caption">28 model runs tracked with parameters, metrics, and artifacts — sorted by F1 score. RandomForest_009 leads with F1 = 0.2543</p>
+
+  <div style="margin-top:1rem; padding: 16px; background:rgba(96,165,250,0.06); border-radius:8px; border-left:3px solid #60a5fa;">
+    <p style="color:#94a3b8; font-size:0.95rem;">💡 <strong style="color:#e2e8f0;">Without MLflow:</strong> These 28 experiments would be lost in terminal output. With MLflow, every run is permanently recorded, comparable, and reproducible.</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SLIDE 8: MLflow Deep Dive -->
+<!-- ══════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">07 / 14</span>
+  <h2>Comparing <span class="accent">Models</span> Side by Side</h2>
+  <p class="lead">Select any runs and compare — metrics, parameters, and artifacts laid out for direct comparison.</p>
+
+  <div class="screenshot">
+    <div class="screenshot-placeholder">
+      <img src="image9.png" alt="Stroke Predicted" style="max-width:100%; border-radius:8px;">
+  
+    </div>
+  </div>
+  <p class="caption">Logistic Regression vs Random Forest vs Gradient Boosting — same data, different approaches, all tracked</p>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SLIDE 9: Model Registry -->
+<!-- ══════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">08 / 14</span>
+  <h2>Model <span class="accent">Registry</span> & Versioning</h2>
+  <p class="lead">The best model is registered, versioned, and given a "champion" alias. Any application can now load the current production model by name — not by file path.</p>
+
+  <div class="two-col">
+    <div>
+      <div class="screenshot">
+        <div class="screenshot-placeholder">
+        <img src="image7.png" alt="Stroke Predicted" style="max-width:100%; border-radius:8px;">
+        </div>
+      </div>
+    </div>
+    <div>
+      <h3>How Versioning Works</h3>
+      <div class="card" style="margin-bottom:12px;">
+        <h4>📌 Register</h4>
+        <p>Best model from experiments gets registered with a name: <code style="color:#60a5fa;">stroke-classifier</code></p>
+      </div>
+      <div class="card" style="margin-bottom:12px;">
+        <h4>🏷️ Version</h4>
+        <p>Each registration creates a new version (v1, v2, v3...). Old versions are preserved.</p>
+      </div>
+      <div class="card">
+        <h4>🏆 Promote</h4>
+        <p>After evaluation passes quality gates, the model gets the <code style="color:#4ade80;">champion</code> alias. The API always loads the champion.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SLIDE 10: Evaluation Gate -->
+<!-- ══════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">09 / 14</span>
+  <h2>Automated <span class="accent">Quality Gates</span></h2>
+  <p class="lead">Models don't get promoted by humans clicking buttons. The evaluation pipeline decides based on metrics thresholds.</p>
+
+  <div class="two-col">
+    <div>
+      <h3>The Evaluation Flow</h3>
+      <div style="font-family:monospace; background:#111118; padding:20px; border-radius:8px; font-size:0.85rem; line-height:2; color:#a1a1aa;">
+        <span style="color:#4ade80;">✓</span> Load registered model (v1)<br>
+        <span style="color:#4ade80;">✓</span> Run on held-out test set (851 records)<br>
+        <span style="color:#4ade80;">✓</span> Calculate metrics (F1, Precision, Recall, AUC)<br>
+        <span style="color:#4ade80;">✓</span> Log confusion matrix + ROC curve<br>
+        <span style="color:#4ade80;">✓</span> Compare F1 against threshold<br>
+        <span style="color:#4ade80;">✓</span> Decision: <span style="color:#60a5fa;">PROMOTE</span> or <span style="color:#f87171;">REJECT</span>
+      </div>
+    </div>
+    <div>
+      <h3>Test Set Results</h3>
+      <table class="tool-table">
+        <tr><td>F1 Score</td><td><strong style="color:#e2e8f0;">0.1893</strong></td></tr>
+        <tr><td>Precision</td><td>0.1186</td></tr>
+        <tr><td>Recall</td><td>0.4694</td></tr>
+        <tr><td>ROC AUC</td><td>0.7485</td></tr>
+        <tr><td>Accuracy</td><td>0.7685</td></tr>
+      </table>
+      <div style="margin-top:1rem; padding:12px; background:rgba(96,165,250,0.06); border-radius:8px;">
+        <p style="font-size:0.9rem; color:#94a3b8;">💡 <strong style="color:#e2e8f0;">Why is F1 low?</strong> With 5.8% stroke rate, this is a hard problem. The model favors recall (catching strokes) over precision. This is exactly why monitoring matters — we need to know when performance degrades further.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SLIDE 11: API Serving -->
+<!-- ══════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">10 / 14</span>
+  <h2>Model as an <span class="accent">API</span></h2>
+  <p class="lead">The model is now accessible to any application — web apps, mobile apps, other services — via a REST API.</p>
+
+  <div class="screenshot">
+    <div class="screenshot-placeholder">
+      <img src="image10.png" alt="Stroke Predicted" style="max-width:100%; border-radius:8px;">
+
+    </div>
+  </div>
+  <p class="caption">Send patient data as JSON → receive stroke risk prediction with confidence score and model version</p>
+
+  <div class="card-grid" style="margin-top:1rem;">
+    <div class="card">
+      <h4>POST /predict</h4>
+      <p>Single patient — send JSON, get instant prediction with confidence score.</p>
+    </div>
+    <div class="card">
+      <h4>POST /predict/batch</h4>
+      <p>Upload a CSV of hundreds of patients — get all predictions in one call.</p>
+    </div>
+    <div class="card">
+      <h4>GET /health</h4>
+      <p>Health check — confirms model is loaded, returns version. Used by monitoring systems.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SLIDE 12: The Dashboard -->
+<!-- ══════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">11 / 14</span>
+  <h2>The <span class="accent">Dashboard</span></h2>
+  <p class="lead">A web interface that connects to the API — allowing clinical staff or researchers to assess stroke risk interactively.</p>
+
+  <div class="two-col">
+    <div>
+      <div class="screenshot">
+        <div class="screenshot-placeholder" style="min-height:250px;">
+          <img src="image13.png" alt="Stroke Predicted" style="max-width:100%; border-radius:8px;">
+
+        </div>
+      </div>
+      <p class="caption">87-year-old male, heart disease, smoker → Stroke risk detected</p>
+    </div>
+    <div>
+      <div class="screenshot">
+        <div class="screenshot-placeholder" style="min-height:250px;">
+        <img src="image14.png" alt="Stroke Predicted" style="max-width:100%; border-radius:8px;">
+        </div>
+      </div>
+      <p class="caption">25-year-old female, no risk factors → No stroke risk</p>
+    </div>
+  </div>
+
+  <div class="screenshot" style="margin-top:1rem;">
+    <div class="screenshot-placeholder" style="min-height:200px;">
+      <img src="image12.png" alt="Stroke Predicted" style="max-width:100%; border-radius:8px;">
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SLIDE 13: GitHub + CI -->
+<!-- ══════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">12 / 14</span>
+  <h2>Version Control + <span class="accent">Automated Testing</span></h2>
+  <p class="lead">Every piece of code is in GitHub. Every push triggers automated validation — 32 tests ensure nothing breaks.</p>
+
+  <div class="two-col">
+    <div>
+      <div class="screenshot">
+        <div class="screenshot-placeholder" style="min-height:250px;">
+          <img src="image4.png" alt="Stroke Predicted" style="max-width:100%; border-radius:8px;">
+
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="screenshot">
+        <div class="screenshot-placeholder" style="min-height:250px;">
+          <img src="image3.png" alt="Stroke Predicted" style="max-width:100%; border-radius:8px;">
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="screenshot" style="margin-top:1rem;">
+    <div class="screenshot-placeholder" style="min-height:180px;">
+      <img src="image2.png" alt="Stroke Predicted" style="max-width:100%; border-radius:8px;">
+
+    </div>
+  </div>
+  <p class="caption">CI Pipeline: Install → Preprocess → Train 28 models → Evaluate → Export → Run 32 tests → Build Docker image — all automated</p>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SLIDE 14: Tool Stack -->
+<!-- ══════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">13 / 14</span>
+  <h2>The Complete <span class="accent">Tool Stack</span></h2>
+  <p class="lead">Every tool in today's demo — and what gets added tomorrow.</p>
+
+  <div class="two-col">
+    <div>
+      <h3>✅ Today (Day 1)</h3>
+      <table class="tool-table">
+        <tr><td>Data Processing</td><td><span class="tool-badge">Pandas</span> <span class="tool-badge">Scikit-learn</span></td></tr>
+        <tr><td>Model Training</td><td><span class="tool-badge">Scikit-learn</span> <span class="tool-badge">SMOTE</span></td></tr>
+        <tr><td>Experiment Tracking</td><td><span class="tool-badge">MLflow</span></td></tr>
+        <tr><td>Model Registry</td><td><span class="tool-badge">MLflow Registry</span></td></tr>
+        <tr><td>API Serving</td><td><span class="tool-badge">FastAPI</span></td></tr>
+        <tr><td>Frontend</td><td><span class="tool-badge">Vanilla JS</span></td></tr>
+        <tr><td>Version Control</td><td><span class="tool-badge">GitHub</span></td></tr>
+        <tr><td>Testing</td><td><span class="tool-badge">Pytest</span></td></tr>
+      </table>
+    </div>
+    <div>
+      <h3>🔜 Tomorrow (Day 2)</h3>
+      <table class="tool-table">
+        <tr><td>Containerization</td><td><span class="tool-badge">Docker</span></td></tr>
+        <tr><td>CI/CD</td><td><span class="tool-badge">GitHub Actions</span></td></tr>
+        <tr><td>Infrastructure as Code</td><td><span class="tool-badge">Terraform</span></td></tr>
+        <tr><td>Cloud Deployment</td><td><span class="tool-badge">Google Cloud Run</span></td></tr>
+        <tr><td>Event Pipeline</td><td><span class="tool-badge">Cloud Functions</span></td></tr>
+        <tr><td>ML Monitoring</td><td><span class="tool-badge">Evidently AI</span></td></tr>
+        <tr><td>Observability</td><td><span class="tool-badge">GCP Monitoring</span></td></tr>
+        <tr><td>Alerting</td><td><span class="tool-badge">Email Alerts</span></td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SLIDE 15: Day 2 Preview + Contact -->
+<!-- ══════════════════════════════════════════ -->
+<section class="slide cta-slide">
+  <span class="slide-number">14 / 14</span>
+  <h2>Tomorrow: <span class="accent">Deployment + CI/CD + Monitoring</span></h2>
+  <p class="lead">Everything we built today goes to the cloud.</p>
+
+  <ul class="preview-list" style="max-width:600px; margin:1.5rem auto;">
+    <li><span class="tag tag-docker">Docker</span> Containerize the entire application — runs identically anywhere</li>
+    <li><span class="tag tag-cicd">CI/CD</span> Push code → tests run → auto-deploy to cloud</li>
+    <li><span class="tag tag-cloud">Cloud</span> Live API on Google Cloud Run — accessible from anywhere</li>
+    <li><span class="tag tag-monitor">Monitor</span> Drift detection, observability dashboards, automated alerts</li>
+  </ul>
+
+  <div class="contact-card">
+    <div class="cc-name">Basudev Panda</div>
+    <div class="cc-role">Senior Manager — Data Scientist, MLOps Expert</div>
+    <div class="cc-item"><span class="cc-icon">📧</span> basudevpanda@gmail.com</div>
+    <div class="cc-item"><span class="cc-icon">📱</span> +91 9611056001</div>
+  </div>
+
+  <p style="margin-top:2rem; color:#52525b; font-size:0.9rem;">Thank you! Questions are welcome.</p>
+</section>
+
+</body>
+</html>
