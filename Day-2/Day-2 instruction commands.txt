@@ -1,0 +1,149 @@
+# Day 2 — Quick Reference: Commands & URLs
+
+## Live URLs
+
+| What | URL |
+|---|---|
+| Live API (Cloud Run) | https://stroke-api-12302119980.asia-south1.run.app |
+| Live Health Check | https://stroke-api-12302119980.asia-south1.run.app/health |
+| Live Swagger Docs | https://stroke-api-12302119980.asia-south1.run.app/docs |
+| GitHub Repo | https://github.com/basudev2016/stroke-prediction-mlops |
+| GitHub Actions (CI/CD) | https://github.com/basudev2016/stroke-prediction-mlops/actions |
+| GitHub Secrets | https://github.com/basudev2016/stroke-prediction-mlops/settings/secrets/actions |
+
+## GCP Console URLs
+
+| What | URL |
+|---|---|
+| GCP Console Home | https://console.cloud.google.com/home/dashboard?project=stroke-mlops |
+| Cloud Run Dashboard | https://console.cloud.google.com/run?project=stroke-mlops |
+| Cloud Run Logs | https://console.cloud.google.com/run/detail/asia-south1/stroke-api/logs?project=stroke-mlops |
+| Cloud Run Metrics | https://console.cloud.google.com/run/detail/asia-south1/stroke-api/metrics?project=stroke-mlops |
+| Artifact Registry | https://console.cloud.google.com/artifacts?project=stroke-mlops |
+| Cloud Storage Buckets | https://console.cloud.google.com/storage/browser?project=stroke-mlops |
+| IAM & Admin | https://console.cloud.google.com/iam-admin/iam?project=stroke-mlops |
+| Monitoring Dashboard | https://console.cloud.google.com/monitoring?project=stroke-mlops |
+| Logs Explorer | https://console.cloud.google.com/logs?project=stroke-mlops |
+
+## Local URLs (when running locally)
+
+| What | URL |
+|---|---|
+| FastAPI App | http://localhost:8000 |
+| Swagger UI | http://localhost:8000/docs |
+| Health Check | http://localhost:8000/health |
+| MLflow UI | http://localhost:5000 |
+
+---
+
+## Day 2 Demo Commands
+
+### Docker (show containerization)
+```
+docker build -t stroke-mlops:v2 .
+docker run -p 8000:8000 stroke-mlops:v2
+```
+
+### Drift Detection — Clean Data (PASS)
+```
+python src/monitoring/drift_check.py --incoming data/processed/test.csv
+```
+
+### Drift Detection — Drifted Data (FAIL)
+```
+python src/monitoring/generate_drifted_data.py
+python src/monitoring/drift_check.py --incoming data/incoming/drifted_patients.csv
+```
+
+### Inference Pipeline — Full Flow (drift → score → Excel)
+```
+python src/inference/pipeline.py --incoming data/processed/test.csv
+```
+
+### Inference Pipeline — Blocked by Drift
+```
+python src/inference/pipeline.py --incoming data/incoming/drifted_patients.csv
+```
+
+### CI/CD — Trigger Deploy (push code → auto-deploy to Cloud Run)
+```
+git add .
+git commit -m "your change message"
+git push origin main
+```
+Then watch: https://github.com/basudev2016/stroke-prediction-mlops/actions
+
+### GCP — Manual Deployment Commands (what Terraform automates)
+```
+# 1. Enable APIs
+gcloud services enable run.googleapis.com artifactregistry.googleapis.com cloudbuild.googleapis.com monitoring.googleapis.com logging.googleapis.com
+
+# 2. Create Artifact Registry
+gcloud artifacts repositories create stroke-mlops-repo --repository-format=docker --location=asia-south1
+
+# 3. Configure Docker auth
+gcloud auth configure-docker asia-south1-docker.pkg.dev
+
+# 4. Tag and push image
+docker tag stroke-mlops:v2 asia-south1-docker.pkg.dev/stroke-mlops/stroke-mlops-repo/stroke-api:v2
+docker push asia-south1-docker.pkg.dev/stroke-mlops/stroke-mlops-repo/stroke-api:v2
+
+# 5. Deploy to Cloud Run
+gcloud run deploy stroke-api --image=asia-south1-docker.pkg.dev/stroke-mlops/stroke-mlops-repo/stroke-api:v2 --region=asia-south1 --port=8000 --allow-unauthenticated --memory=1Gi --max-instances=1
+
+# 6. Create storage buckets
+gcloud storage buckets create gs://stroke-mlops-incoming --location=asia-south1
+gcloud storage buckets create gs://stroke-mlops-scored --location=asia-south1
+gcloud storage buckets create gs://stroke-mlops-reports --location=asia-south1
+```
+
+### GCP — Service Account for CI/CD
+```
+# Create robot account
+gcloud iam service-accounts create github-deploy --display-name="GitHub Deploy"
+
+# Grant permissions
+gcloud projects add-iam-policy-binding stroke-mlops --member="serviceAccount:github-deploy@stroke-mlops.iam.gserviceaccount.com" --role="roles/run.admin"
+gcloud projects add-iam-policy-binding stroke-mlops --member="serviceAccount:github-deploy@stroke-mlops.iam.gserviceaccount.com" --role="roles/artifactregistry.writer"
+gcloud projects add-iam-policy-binding stroke-mlops --member="serviceAccount:github-deploy@stroke-mlops.iam.gserviceaccount.com" --role="roles/iam.serviceAccountUser"
+
+# Create key file (store as GitHub secret)
+gcloud iam service-accounts keys create github-deploy-key.json --iam-account=github-deploy@stroke-mlops.iam.gserviceaccount.com
+```
+
+### Terraform (IaC — not run, shown as teaching material)
+```
+cd terraform
+terraform init
+terraform plan      # dry run — shows what would be created
+terraform apply     # creates everything
+terraform destroy   # removes everything
+```
+
+### Open Local Files
+```
+# Open Evidently drift report
+start reports\drift_report_*.html
+
+# Open Excel output
+start output\scored_*.xlsx
+```
+
+---
+
+## Demo Flow Order (Day 2 Session)
+
+```
+1. Recap Day 1 (slides)
+2. Show Docker: docker run → localhost:8000
+3. Show CI/CD: GitHub Actions → CI green → CD green
+4. Show Cloud Run: live URL → /health → predict from phone
+5. Show GCP Console: Artifact Registry → Cloud Run metrics → Logs
+6. Show Cloud Storage: 3 buckets
+7. Show Terraform files: explain IaC concept
+8. Show Drift Detection: clean pass → drifted fail
+9. Show Inference Pipeline: drift → score → Excel output
+10. Show Evidently HTML report
+11. Recap personas table
+12. Day 2 wrap-up + contact
+```

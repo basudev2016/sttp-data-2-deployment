@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Day 2 — MLOps Pipeline Flowcharts</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+<style>
+  body {
+    background: #0a0a0f;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 40px;
+    font-family: 'Segoe UI', sans-serif;
+    gap: 40px;
+  }
+  .container {
+    background: #111118;
+    border: 1px solid #2a2a3a;
+    border-radius: 16px;
+    padding: 40px;
+    max-width: 1200px;
+    width: 100%;
+  }
+  h1 {
+    text-align: center;
+    color: #60a5fa;
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+  }
+  h2 {
+    text-align: center;
+    color: #a78bfa;
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #71717a;
+    font-size: 0.9rem;
+    margin-bottom: 25px;
+  }
+  .mermaid {
+    display: flex;
+    justify-content: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Complete MLOps Pipeline — Day 1 + Day 2</h1>
+  <p class="subtitle">From raw data to monitored cloud deployment</p>
+  <div class="mermaid">
+flowchart TD
+    A["📊 Raw Dataset<br/>5,110 patients"] --> B["🧹 Preprocessing<br/>preprocess.py"]
+    B --> C["📂 Clean Data<br/>4,253 records"]
+    C --> D["✂️ Stratified Split"]
+    D --> E["🏋️ Train: 3,402"]
+    D --> F["🧪 Test: 851"]
+    D --> G["📏 Reference: 500"]
+    E --> H["🧠 Training<br/>28 models × MLflow"]
+    H --> I["🏆 Best Model<br/>RandomForest_009"]
+    I --> J["📦 MLflow Registry<br/>v2 champion"]
+    F --> K["✅ Evaluate<br/>F1 = 0.1893"]
+    J --> K
+    K --> L["📤 Export Model"]
+    L --> M["🌐 FastAPI + UI"]
+    L --> N["🐳 Docker<br/>stroke-mlops:v2"]
+    N --> O["📦 Artifact Registry"]
+    O --> P["☁️ Cloud Run<br/>stroke-api"]
+    P --> Q["🌍 Live URL"]
+    M --> R["🧪 32 Tests"]
+    R --> S["🔄 GitHub Actions CI"]
+    S --> T["🚀 GitHub Actions CD"]
+    T --> O
+    G --> U["📊 Evidently<br/>Drift Detection"]
+    U --> V{"Drift > 30%?"}
+    V -->|"No ✅"| W["🧠 Score Batch"]
+    V -->|"Yes ❌"| X["⛔ Halt Pipeline"]
+    W --> Y["📊 Excel Report"]
+    P --> Z["📈 GCP Monitoring"]
+    Z --> AA["🔔 Alert Email"]
+    style A fill:#1e3a5f,stroke:#60a5fa,color:#e2e8f0
+    style H fill:#2d1b69,stroke:#a78bfa,color:#e2e8f0
+    style I fill:#14532d,stroke:#4ade80,color:#e2e8f0
+    style J fill:#4a1d96,stroke:#a78bfa,color:#e2e8f0
+    style N fill:#1e3a5f,stroke:#60a5fa,color:#e2e8f0
+    style O fill:#4a3000,stroke:#fb923c,color:#e2e8f0
+    style P fill:#14532d,stroke:#4ade80,color:#e2e8f0
+    style Q fill:#14532d,stroke:#4ade80,color:#e2e8f0
+    style T fill:#4a3000,stroke:#fb923c,color:#e2e8f0
+    style U fill:#2d1b69,stroke:#a78bfa,color:#e2e8f0
+    style X fill:#7f1d1d,stroke:#f87171,color:#e2e8f0
+    style Y fill:#14532d,stroke:#4ade80,color:#e2e8f0
+    style Z fill:#1e3a5f,stroke:#60a5fa,color:#e2e8f0
+    style AA fill:#4a3000,stroke:#fb923c,color:#e2e8f0
+  </div>
+</div>
+
+<div class="container">
+  <h2>CI/CD Pipeline — Git Push to Cloud Deployment</h2>
+  <div class="mermaid">
+flowchart LR
+    A["👨‍💻 Developer<br/>git push"] --> B["🔄 GitHub Actions"]
+    B --> C["CI Pipeline"]
+    B --> D["CD Pipeline"]
+    C --> C1["Install deps"]
+    C1 --> C2["Preprocess"]
+    C2 --> C3["Train 28 models"]
+    C3 --> C4["Evaluate"]
+    C4 --> C5["Export model"]
+    C5 --> C6["Run 32 tests"]
+    C6 --> C7["Build Docker"]
+    C7 --> C8["✅ CI Green"]
+    D --> D1["All CI steps"]
+    D1 --> D2["🔑 Auth to GCP"]
+    D2 --> D3["🐳 Build image"]
+    D3 --> D4["📦 Push to<br/>Artifact Registry"]
+    D4 --> D5["☁️ Deploy to<br/>Cloud Run"]
+    D5 --> D6["✅ Live in 8 min"]
+    style A fill:#1e3a5f,stroke:#60a5fa,color:#e2e8f0
+    style C8 fill:#14532d,stroke:#4ade80,color:#e2e8f0
+    style D6 fill:#14532d,stroke:#4ade80,color:#e2e8f0
+    style D2 fill:#4a3000,stroke:#fb923c,color:#e2e8f0
+    style D4 fill:#4a3000,stroke:#fb923c,color:#e2e8f0
+    style D5 fill:#14532d,stroke:#4ade80,color:#e2e8f0
+  </div>
+</div>
+
+<div class="container">
+  <h2>Containerization — Docker</h2>
+  <div class="mermaid">
+flowchart LR
+    A["📁 Source Code"] --> D["🐳 Dockerfile"]
+    B["🧠 Model"] --> D
+    C["🌐 UI"] --> D
+    D --> E["🐳 Docker Image<br/>stroke-mlops:v2"]
+    E --> F["💻 Run Locally<br/>localhost:8000"]
+    E --> G["📦 Artifact Registry"]
+    G --> H["☁️ Cloud Run"]
+    style D fill:#1e3a5f,stroke:#60a5fa,color:#e2e8f0
+    style E fill:#1e3a5f,stroke:#60a5fa,color:#e2e8f0
+    style F fill:#14532d,stroke:#4ade80,color:#e2e8f0
+    style H fill:#14532d,stroke:#4ade80,color:#e2e8f0
+  </div>
+</div>
+
+<div class="container">
+  <h2>Inference Pipeline — Drift Check → Score → Excel</h2>
+  <div class="mermaid">
+flowchart LR
+    A["📁 New CSV"] --> B["📊 Drift Check<br/>Evidently AI"]
+    B --> C{"Drift > 30%?"}
+    C -->|"✅ Pass"| D["🧠 Load Champion"]
+    C -->|"❌ Fail"| E["⛔ HALT"]
+    D --> F["🔮 Score Batch"]
+    F --> G["📊 Excel Report"]
+    G --> H["✅ scored_*.xlsx"]
+    style A fill:#1e3a5f,stroke:#60a5fa,color:#e2e8f0
+    style B fill:#2d1b69,stroke:#a78bfa,color:#e2e8f0
+    style E fill:#7f1d1d,stroke:#f87171,color:#e2e8f0
+    style H fill:#14532d,stroke:#4ade80,color:#e2e8f0
+  </div>
+</div>
+
+<div class="container">
+  <h2>Observability — Logs, Metrics, Alerts</h2>
+  <div class="mermaid">
+flowchart TD
+    A["☁️ Cloud Run<br/>stroke-api"] --> B["📝 Structured Logs"]
+    A --> C["📈 Metrics"]
+    A --> D["🔔 Alert Policies"]
+    B --> E["🔍 Logs Explorer"]
+    C --> F["📊 Dashboard"]
+    D --> G["📧 Email Alert"]
+    B --> H["Every prediction:<br/>gender, age, result,<br/>confidence, latency"]
+    style A fill:#14532d,stroke:#4ade80,color:#e2e8f0
+    style E fill:#1e3a5f,stroke:#60a5fa,color:#e2e8f0
+    style F fill:#1e3a5f,stroke:#60a5fa,color:#e2e8f0
+    style G fill:#4a3000,stroke:#fb923c,color:#e2e8f0
+    style H fill:#2d1b69,stroke:#a78bfa,color:#e2e8f0
+  </div>
+</div>
+
+<div class="container">
+  <h2>Infrastructure as Code — Terraform</h2>
+  <div class="mermaid">
+flowchart LR
+    A["📝 7 Terraform files"] --> B["terraform apply"]
+    B --> C["✅ 13 Resources Created"]
+    C --> D["☁️ Cloud Run"]
+    C --> E["📦 Artifact Registry"]
+    C --> F["📂 3 GCS Buckets"]
+    C --> G["🔑 Service Account"]
+    C --> H["🔔 Alert Policies"]
+    C --> I["📧 Email Channel"]
+    J["terraform destroy"] --> K["💀 Everything Gone<br/>₹0 instantly"]
+    style A fill:#4a3000,stroke:#fb923c,color:#e2e8f0
+    style B fill:#14532d,stroke:#4ade80,color:#e2e8f0
+    style C fill:#14532d,stroke:#4ade80,color:#e2e8f0
+    style K fill:#7f1d1d,stroke:#f87171,color:#e2e8f0
+  </div>
+</div>
+
+<div class="container">
+  <h2>Cloud Architecture — What's Running in GCP</h2>
+  <div class="mermaid">
+flowchart TD
+    GH["🔄 GitHub Actions"] --> AR["📦 Artifact Registry"]
+    AR --> CR["☁️ Cloud Run<br/>stroke-api"]
+    CR --> LOG["📝 Cloud Logging"]
+    CR --> MET["📈 Cloud Monitoring"]
+    MET --> ALT["🔔 Alert → Email"]
+    GCS1["📂 GCS: incoming"] --> CF["⚡ Cloud Function<br/>(Event Trigger)"]
+    CF --> DRIFT["📊 Drift Check"]
+    DRIFT --> GCS2["📂 GCS: scored"]
+    DRIFT --> GCS3["📂 GCS: reports"]
+    CR -.->|"Serves"| UI["🌐 Dashboard + API"]
+    style GH fill:#1e3a5f,stroke:#60a5fa,color:#e2e8f0
+    style AR fill:#4a3000,stroke:#fb923c,color:#e2e8f0
+    style CR fill:#14532d,stroke:#4ade80,color:#e2e8f0
+    style CF fill:#2d1b69,stroke:#a78bfa,color:#e2e8f0
+    style ALT fill:#4a3000,stroke:#fb923c,color:#e2e8f0
+    style UI fill:#14532d,stroke:#4ade80,color:#e2e8f0
+  </div>
+</div>
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'dark', flowchart: { curve: 'basis', padding: 15 } });
+</script>
+</body>
+</html>

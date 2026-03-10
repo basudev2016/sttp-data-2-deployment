@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Day 2 — Live Demo Script</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #0a0a0f;
+    color: #e4e4e7;
+    padding: 40px;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .header h1 {
+    font-size: 2rem;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+  .header p { color: #71717a; font-size: 1rem; }
+
+  .section {
+    max-width: 900px;
+    margin: 0 auto 40px;
+    background: #111118;
+    border: 1px solid #2a2a3a;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .section-header {
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-number {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.9rem; color: #fff;
+    flex-shrink: 0;
+  }
+  .n-blue { background: #1e3a5f; }
+  .n-purple { background: #4a1d96; }
+  .n-green { background: #14532d; }
+  .n-orange { background: #4a3000; }
+  .n-red { background: #7f1d1d; }
+
+  .section-title { font-size: 1.15rem; font-weight: 600; color: #f1f5f9; }
+  .section-time { font-size: 0.8rem; color: #4a4a5a; margin-left: auto; }
+
+  .section-body { padding: 0 24px 24px; }
+
+  .step {
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .step:last-child { border: none; }
+  .step-icon { font-size: 1.2rem; padding-top: 2px; flex-shrink: 0; }
+  .step-content { flex: 1; }
+  .step-action {
+    font-size: 0.95rem;
+    color: #e2e8f0;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .step-detail {
+    font-size: 0.85rem;
+    color: #71717a;
+    margin-top: 2px;
+  }
+  code {
+    background: #1a1a2e;
+    color: #4ade80;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-family: 'Consolas', monospace;
+  }
+  .cmd-block {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin: 8px 0;
+    font-family: 'Consolas', monospace;
+    font-size: 0.85rem;
+    color: #4ade80;
+    line-height: 1.8;
+    overflow-x: auto;
+    cursor: pointer;
+    position: relative;
+  }
+  .cmd-block:hover { border-color: #4ade80; }
+  .cmd-block::after {
+    content: "click to copy";
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    font-size: 0.7rem;
+    color: #3a3a5a;
+  }
+  .say {
+    background: rgba(96,165,250,0.06);
+    border-left: 3px solid #60a5fa;
+    padding: 10px 16px;
+    margin: 8px 0;
+    font-size: 0.9rem;
+    color: #94a3b8;
+    font-style: italic;
+  }
+  .do-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  .do-run { background: rgba(74,222,128,0.15); color: #4ade80; }
+  .do-open { background: rgba(96,165,250,0.15); color: #60a5fa; }
+  .do-click { background: rgba(251,146,60,0.15); color: #fb923c; }
+  .do-say { background: rgba(167,139,250,0.15); color: #a78bfa; }
+  .do-wait { background: rgba(248,113,113,0.15); color: #f87171; }
+
+  a.url-link {
+    color: #60a5fa;
+    text-decoration: none;
+    font-size: 0.9rem;
+    word-break: break-all;
+  }
+  a.url-link:hover { text-decoration: underline; }
+
+  .prereq {
+    max-width: 900px;
+    margin: 0 auto 30px;
+    padding: 16px 24px;
+    background: rgba(248,113,113,0.06);
+    border: 1px solid rgba(248,113,113,0.15);
+    border-radius: 10px;
+  }
+  .prereq h3 { color: #fca5a5; font-size: 0.9rem; margin-bottom: 8px; }
+  .prereq p { color: #71717a; font-size: 0.85rem; line-height: 1.7; }
+</style>
+<script>
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('cmd-block')) {
+      navigator.clipboard.writeText(e.target.innerText.trim());
+      e.target.style.borderColor = '#4ade80';
+      setTimeout(() => e.target.style.borderColor = '#21262d', 1000);
+    }
+  });
+</script>
+</head>
+<body>
+
+<div class="header">
+  <h1>Day 2 — Live Demo Script</h1>
+  <p>Run everything live. Click any command box to copy it.</p>
+</div>
+
+<div class="prereq">
+  <h3>⚠️ Before You Start — Have These Ready</h3>
+  <p>
+    ✓ Terminal open at project root: <code>C:\Users\Admin\OneDrive\Desktop\stroke-prediction-mlops</code><br>
+    ✓ Docker Desktop running<br>
+    ✓ VS Code open with project files<br>
+    ✓ Chrome open with GCP Console logged in<br>
+    ✓ Phone ready to demo live URL<br>
+    ✓ Stop any running servers (Ctrl+C)
+  </p>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- BLOCK 1: Recap -->
+<!-- ══════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-number n-blue">1</div>
+    <div class="section-title">Day 1 Recap</div>
+    <div class="section-time">6:00 — 6:10</div>
+  </div>
+  <div class="section-body">
+    <div class="step">
+      <div class="step-icon">🗂️</div>
+      <div class="step-content">
+        <div class="step-action"><span class="do-open">OPEN</span> Day 1 flowchart HTML in browser</div>
+        <div class="step-detail">Walk through the pipeline: Data → Training → MLflow → API → Tests → CI</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">💬</div>
+      <div class="step-content">
+        <div class="say">"Yesterday we trained 28 models, tracked every experiment in MLflow, served the champion as an API, built a UI, wrote 32 tests, and automated CI. Today — we take all of that to the cloud."</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- BLOCK 2: Docker -->
+<!-- ══════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-number n-blue">2</div>
+    <div class="section-title">Let's Containerize It</div>
+    <div class="section-time">6:10 — 6:25</div>
+  </div>
+  <div class="section-body">
+    <div class="step">
+      <div class="step-icon">💬</div>
+      <div class="step-content">
+        <div class="say">"The classic problem — 'It works on my machine.' Let me show you how Docker solves this."</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">📂</div>
+      <div class="step-content">
+        <div class="step-action"><span class="do-open">OPEN</span> Dockerfile in VS Code</div>
+        <div class="step-detail">Point out: multi-stage build, Python 3.11, copies src + ui + models</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">🐳</div>
+      <div class="step-content">
+        <div class="step-action"><span class="do-run">RUN</span> Start the container</div>
+        <div class="cmd-block">docker run -p 8000:8000 stroke-mlops:v2</div>
+        <div class="step-detail">Watch the structured logs appear — model loaded, server ready</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">🌐</div>
+      <div class="step-content">
+        <div class="step-action"><span class="do-open">OPEN</span> in browser — test a prediction</div>
+        <a class="url-link" href="http://localhost:8000" target="_blank">http://localhost:8000</a>
+        <div class="step-detail">Enter a high-risk patient. Click Predict. It works — inside a container.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">💬</div>
+      <div class="step-content">
+        <div class="say">"Same code, same model, same UI. But now it's packaged. This exact image — byte for byte — is what runs in the cloud. No 'works on my machine' problems."</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">⏹️</div>
+      <div class="step-content">
+        <div class="step-action"><span class="do-run">RUN</span> Stop the container</div>
+        <div class="step-detail">Press Ctrl+C in terminal</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- BLOCK 3: Cloud -->
+<!-- ══════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-number n-green">3</div>
+    <div class="section-title">Let's See It in the Cloud</div>
+    <div class="section-time">6:25 — 6:45</div>
+  </div>
+  <div class="section-body">
+    <div class="step">
+      <div class="step-icon">💬</div>
+      <div class="step-content">
+        <div class="say">"That container we just ran on my laptop — it's already running in Google's cloud. Let me prove it."</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">🌍</div>
+      <div class="step-content">
+        <div class="step-action"><span class="do-open">OPEN</span> Live URL on laptop</div>
+        <a class="url-link" href="https://stroke-api-12302119980.asia-south1.run.app" target="_blank">https://stroke-api-12302119980.asia-south1.run.app</a>
+        <div class="step-detail">Enter patient data. Click Predict. This is running in Mumbai, not on my laptop.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">📱</div>
+      <div class="step-content">
+        <div class="step-action"><span class="do-open">OPEN</span> Same URL on your phone</div>
+        <div class="step-detail">Pass the phone around. Anyone in this room can access it right now.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">❤️</div>
+      <div class="step-content">
+        <div class="step-action"><span class="do-open">OPEN</span> Health check endpoint</div>
+        <a class="url-link" href="https://stroke-api-12302119980.asia-south1.run.app/health" target="_blank">https://stroke-api-12302119980.asia-south1.run.app/health</a>
+        <div class="step-detail">Model name, version, status — all from the cloud</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">☁️</div>
+      <div class="step-content">
+        <div class="step-action"><span class="do-open">OPEN</span> GCP Console — Cloud Run</div>
+        <a class="url-link" href="https://console.cloud.google.com/run?project=stroke-mlops" target="_blank">https://console.cloud.google.com/run?project=stroke-mlops</a>
+        <div class="step-detail">Here's the service. Region: Mumbai. Scales to zero — costs nothing when idle.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">📦</div>
+      <div class="step-content">
+        <div class="step-action"><span class="do-click">CLICK</span> Artifact Registry in GCP</div>
+        <a class="url-link" href="https://console.cloud.google.com/artifacts?project=stroke-mlops" target="_blank">https://console.cloud.google.com/artifacts?project=stroke-mlops</a>
+        <div class="step-detail">Here's where the Docker image lives. Same image we built locally.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">📂</div>
+      <div class="step-content">
+        <div class="step-action"><span class="do-click">CLICK</span> Cloud Storage buckets</div>
+        <a class="url-link" href="https://console.cloud.google.com/storage/browser?project=stroke-mlops" target="_blank">https://console.cloud.google.com/storage/browser?project=stroke-mlops</a>
+        <div class="step-detail">3 buckets: incoming (new data), scored (Excel output), reports (drift reports)</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">💬</div>
+      <div class="step-content">
+        <div class="say">"Cloud Run scales to zero. Right now, nobody is hitting the URL, so cost is literally ₹0. The moment someone makes a request, it wakes up in 1-2 seconds. Pay only for what you use."</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- BLOCK 4: CI/CD -->
+<!-- ══════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-number n-orange">4</div>
+    <div class="section-title">Let's See How It Got There — CI/CD</div>
+    <div class="section-time">6:45 — 7:10</div>
+  </div>
+  <div class="section-body">
+    <div class="step">
+      <div class="step-icon">💬</div>
+      <div class="step-content">
+        <div class="say">"How did the container get to the cloud? I didn't manually push it. Nobody did. Watch this."</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">📂</div>
+      <div class="step-content">
+        <div class="step-action"><span class="do-open">OPEN</span> CI and CD workflow files in VS Code</div>
+        <div class="step-detail">Open <code>.github/workflows/ci.yml</code> — "This runs tests on every push"</div>
+        <div class="step-detail">Open <code>.github/workflows/cd.yml</code> — "This deploys to Cloud Run after tests pass"</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">✅</div>
+      <div class="step-content">
+        <div class="step-action"><span class="do-open">OPEN</span> GitHub Actions</div>
+        <a class="url-link" href="https://github.com/basudev2016/stroke-prediction-mlops/actions" target="_blank">https://github.com/basudev2016/stroke-prediction-mlops/actions</a>
+        <div class="step-detail">Both CI and CD green. CI took 5 min, CD took 8 min.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">🔍</div>
+      <div class="step-content">
+        <div class="step-action"><span class="do-click">CLICK</span> the CD run — expand the steps</div>
+        <div class="step-detail">Install → Train 28 models → Evaluate → Export → 32 tests → Auth GCP → Build Docker → Push → Deploy. All automated.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">🔑</div>
+      <div class="step-content">
+        <div class="step-action"><span class="do-open">OPEN</span> GitHub Secrets</div>
+        <a class="url-link" href="https://github.com/basudev2016/stroke-prediction-mlops/settings/secrets/actions" target="_blank">https://github.com/basudev2016/stroke-prediction-mlops/settings/secrets/actions</a>
+        <div class="step-detail">3 secrets stored here. This is how GitHub talks to GCP securely.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">💬</div>
+      <div class="step-content">
+        <div class="say">"Let me explain how this authentication works. We created a 'robot account' in GCP — called a service account. We gave it exactly 3 permissions: deploy to Cloud Run, push Docker images, and act on behalf of services. Then we downloaded its key file and stored it as a GitHub secret. Now GitHub Actions can authenticate with GCP automatically. No human password. No manual login. The robot does it."</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">💬</div>
+      <div class="step-content">
+        <div class="say">"So the flow is: I push code → GitHub runs 32 tests → if all pass → builds Docker → pushes to Artifact Registry → deploys to Cloud Run. One git push. Everything automated. Bad code never reaches production because the tests catch it first."</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- BLOCK 5: Drift + Inference -->
+<!-- ══════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-number n-purple">5</div>
+    <div class="section-title">Let's Break the Pipeline — Drift Detection</div>
+    <div class="section-time">7:10 — 7:40</div>
+  </div>
+  <div class="section-body">
+    <div class="step">
+      <div class="step-icon">💬</div>
+      <div class="step-content">
+        <div class="say">"The model is deployed. It's serving predictions. But what happens when new patient data looks completely different from what the model was trained on? The model will give garbage predictions and nobody will know. Unless we check for it. That's called data drift."</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">✅</div>
+      <div class="step-content">
+        <div class="step-action"><span class="do-run">RUN</span> Inference pipeline with clean data — watch it PASS</div>
+        <div class="cmd-block">python src/inference/pipeline.py --incoming data/processed/test.csv</div>
+        <div class="step-detail">Watch: Step 1 loads data → Step 2 drift check passes (30% ≤ 30%) → Step 3 scores 851 records → Step 4 writes Excel</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">📊</div>
+      <div class="step-content">
+        <div class="step-action"><span class="do-open">OPEN</span> the Excel output</div>
+        <div class="cmd-block">start output\scored_*.xlsx</div>
+        <div class="step-detail">Click Summary sheet — shows drift result, total records, stroke count. Click Scored Results — 851 rows, color-coded predictions.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">💬</div>
+      <div class="step-content">
+        <div class="say">"Clean data passed drift check. 851 patients scored. Excel report ready. Now let me show you what happens when bad data comes in."</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">❌</div>
+      <div class="step-content">
+        <div class="step-action"><span class="do-run">RUN</span> Inference pipeline with drifted data — watch it HALT</div>
+        <div class="cmd-block">python src/inference/pipeline.py --incoming data/incoming/drifted_patients.csv</div>
+        <div class="step-detail">Watch: Step 2 drift check FAILS (50% > 30%) → ⛔ PIPELINE HALTED. No predictions made. No Excel generated.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">📈</div>
+      <div class="step-content">
+        <div class="step-action"><span class="do-open">OPEN</span> the Evidently drift report</div>
+        <div class="cmd-block">start reports\drift_report_*.html</div>
+        <div class="step-detail">Scroll through — per-feature drift analysis. Age shifted, glucose spiked, BMI changed. The system caught it.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">💬</div>
+      <div class="step-content">
+        <div class="say">"The system protected itself. Bad data came in. The pipeline detected it was different from training data. It refused to make predictions. No garbage output. No false alerts to doctors. The system called for help instead of guessing."</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">💬</div>
+      <div class="step-content">
+        <div class="say">"In production, this runs automatically. A file lands in the cloud storage bucket. A Cloud Function triggers. Drift is checked. Only clean data gets scored. The Excel appears in the output bucket. No human in the loop."</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- BLOCK 6: Observability -->
+<!-- ══════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-number n-green">6</div>
+    <div class="section-title">Let's See What the System Sees — Observability</div>
+    <div class="section-time">7:40 — 7:50</div>
+  </div>
+  <div class="section-body">
+    <div class="step">
+      <div class="step-icon">💬</div>
+      <div class="step-content">
+        <div class="say">"The model is in the cloud. People are making predictions. But how do I know it's healthy? Let me show you what the system sees about itself."</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">📈</div>
+      <div class="step-content">
+        <div class="step-action"><span class="do-open">OPEN</span> Cloud Run Metrics</div>
+        <a class="url-link" href="https://console.cloud.google.com/run/detail/asia-south1/stroke-api/metrics?project=stroke-mlops" target="_blank">Cloud Run → stroke-api → Metrics</a>
+        <div class="step-detail">Request count, latency, error rate — all captured automatically. Zero config. Point at the spike from earlier requests.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">📝</div>
+      <div class="step-content">
+        <div class="step-action"><span class="do-open">OPEN</span> Cloud Run Logs</div>
+        <a class="url-link" href="https://console.cloud.google.com/run/detail/asia-south1/stroke-api/logs?project=stroke-mlops" target="_blank">Cloud Run → stroke-api → Logs</a>
+        <div class="step-detail">Expand a prediction log entry. Show the structured JSON — prediction, confidence, latency, patient details. Every single prediction is traceable.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">🔔</div>
+      <div class="step-content">
+        <div class="step-action"><span class="do-open">OPEN</span> Monitoring — Alert Policy</div>
+        <a class="url-link" href="https://console.cloud.google.com/monitoring/alerting?project=stroke-mlops" target="_blank">Monitoring → Alerting</a>
+        <div class="step-detail">Show the "Stroke API — Request Alert" policy. Email notification configured. When something unusual happens, the system emails the team.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">💬</div>
+      <div class="step-content">
+        <div class="say">"I wrote zero configuration for these metrics. Cloud Run reports them automatically. The only thing I added is structured logging in my Python code — so every prediction is logged with patient details, confidence score, and latency. If a doctor says 'the prediction was wrong for patient X,' I can trace it back to the exact request."</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- BLOCK 7: Terraform -->
+<!-- ══════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-number n-orange">7</div>
+    <div class="section-title">Let's Talk Infrastructure as Code</div>
+    <div class="section-time">7:50 — 8:00</div>
+  </div>
+  <div class="section-body">
+    <div class="step">
+      <div class="step-icon">💬</div>
+      <div class="step-content">
+        <div class="say">"Everything I set up in GCP — Cloud Run, storage, service accounts, alerts — I did it with manual commands. That's fine for a demo. But in production, you'd never do that. Let me show you why."</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">📂</div>
+      <div class="step-content">
+        <div class="step-action"><span class="do-open">OPEN</span> terraform/ folder in VS Code</div>
+        <div class="step-detail">7 files. Each one replaces a manual gcloud command.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">📝</div>
+      <div class="step-content">
+        <div class="step-action"><span class="do-click">CLICK</span> through key files</div>
+        <div class="step-detail"><code>main.tf</code> — "Which cloud, which project, which APIs"</div>
+        <div class="step-detail"><code>cloud_run.tf</code> — "Creates the exact same Cloud Run service. Scale to zero. 1Gi memory."</div>
+        <div class="step-detail"><code>iam.tf</code> — "Creates the robot account with 3 permissions. Exactly what we did manually."</div>
+        <div class="step-detail"><code>monitoring.tf</code> — "Creates alert policies. Error rate > 5% → email. Latency > 2s → email."</div>
+        <div class="step-detail"><code>outputs.tf</code> — "After apply, Terraform tells you the URLs, bucket names, everything."</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">💬</div>
+      <div class="step-content">
+        <div class="say">"One command: terraform apply — creates all 13 resources. Cloud Run, storage, service accounts, alerts, everything. One command: terraform destroy — removes everything. Cost drops to ₹0. That's infrastructure as code. Reproducible, auditable, version-controlled."</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- BLOCK 8: Wrap-up -->
+<!-- ══════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-number n-red">8</div>
+    <div class="section-title">Wrap-up + Q&A</div>
+    <div class="section-time">8:00+</div>
+  </div>
+  <div class="section-body">
+    <div class="step">
+      <div class="step-icon">🗂️</div>
+      <div class="step-content">
+        <div class="step-action"><span class="do-open">OPEN</span> Day 2 complete pipeline flowchart</div>
+        <div class="step-detail">Walk through the full end-to-end diagram one final time</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">💬</div>
+      <div class="step-content">
+        <div class="say">"In two sessions, we covered what 10 different roles do in a real organization. Data Engineer, Data Scientist, ML Engineer, DevOps, Cloud Engineer, QA, Security, SRE, Architect, Business Owner. One pipeline connects all their work. That's MLOps. And that's why you need someone with E2E visibility leading it."</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">📧</div>
+      <div class="step-content">
+        <div class="step-action">Contact</div>
+        <div class="step-detail" style="color:#e2e8f0;">Basudev Panda — basudevpanda@gmail.com — +91 9611056001</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-icon">❓</div>
+      <div class="step-content">
+        <div class="step-action">Q&A — open the floor</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

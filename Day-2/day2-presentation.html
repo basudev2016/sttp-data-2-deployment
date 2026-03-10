@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MLOps Day 2: Deployment + CI/CD + Monitoring</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{font-family:'Inter',sans-serif;background:#0a0a0f;color:#e4e4e7;overflow-x:hidden}
+
+  .slide{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:60px 80px;position:relative;border-bottom:1px solid #1a1a2e}
+  .slide-number{position:absolute;top:30px;right:40px;font-size:.75rem;color:#4a4a5a;letter-spacing:2px}
+
+  .title-slide{background:linear-gradient(135deg,#0a0a1a 0%,#1a1a3e 50%,#0a0a1a 100%);text-align:center;align-items:center}
+  .title-slide h1{font-size:3rem;font-weight:800;background:linear-gradient(135deg,#60a5fa,#a78bfa,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.5rem;line-height:1.2}
+  .title-slide .subtitle{font-size:1.4rem;color:#94a3b8;font-weight:300;margin-bottom:2rem}
+  .title-slide .date-info{font-size:1rem;color:#64748b;margin-bottom:1.5rem}
+  .presenter{display:inline-flex;align-items:center;gap:15px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:16px 28px;margin-top:1rem}
+  .presenter-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#60a5fa,#a78bfa);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;color:#fff}
+  .presenter-info{text-align:left}
+  .presenter-name{font-weight:600;font-size:1.05rem;color:#e2e8f0}
+  .presenter-role{font-size:.85rem;color:#94a3b8}
+
+  h2{font-size:2.2rem;font-weight:700;margin-bottom:1.2rem;color:#f1f5f9}
+  h2 .accent{color:#60a5fa}
+  h2 .accent-green{color:#4ade80}
+  h2 .accent-red{color:#f87171}
+  h2 .accent-orange{color:#fb923c}
+  h2 .accent-purple{color:#a78bfa}
+  h3{font-size:1.2rem;font-weight:600;color:#cbd5e1;margin-bottom:.8rem}
+  p,li{font-size:1.05rem;line-height:1.8;color:#a1a1aa}
+  .lead{font-size:1.2rem;color:#94a3b8;max-width:800px;margin-bottom:1.5rem}
+
+  .screenshot{background:#111118;border:1px solid #2a2a3a;border-radius:12px;padding:8px;margin:1.2rem 0;text-align:center}
+  .screenshot img{max-width:100%;border-radius:8px;display:block;margin:0 auto}
+  .caption{text-align:center;font-size:.85rem;color:#52525b;margin-top:8px;font-style:italic}
+
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start}
+
+  .card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:22px;margin-bottom:12px}
+  .card h4{font-size:1rem;font-weight:600;color:#e2e8f0;margin-bottom:6px}
+  .card p{font-size:.9rem;color:#71717a}
+
+  .narrative{font-size:1.15rem;color:#cbd5e1;line-height:1.9;max-width:800px;margin-bottom:1.5rem}
+  .narrative em{color:#60a5fa;font-style:normal}
+
+  .highlight-box{max-width:800px;margin:1.5rem 0;padding:24px;background:linear-gradient(135deg,rgba(96,165,250,.06),rgba(96,165,250,.02));border:1px solid rgba(96,165,250,.2);border-left:4px solid #60a5fa;border-radius:8px}
+  .highlight-box p{font-size:1rem;color:#94a3b8}
+  .highlight-box strong{color:#e2e8f0}
+
+  .problem-box{background:linear-gradient(135deg,rgba(248,113,113,.08),rgba(248,113,113,.02));border:1px solid rgba(248,113,113,.2);border-left:4px solid #f87171;border-radius:8px;padding:24px 28px;margin:1.2rem 0}
+  .problem-box h4{color:#fca5a5;margin-bottom:8px}
+
+  .solution-box{background:linear-gradient(135deg,rgba(74,222,128,.08),rgba(74,222,128,.02));border:1px solid rgba(74,222,128,.2);border-left:4px solid #4ade80;border-radius:8px;padding:24px 28px;margin:1.2rem 0}
+  .solution-box h4{color:#86efac;margin-bottom:8px}
+
+  .tool-table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.95rem}
+  .tool-table th{text-align:left;padding:10px 14px;background:rgba(255,255,255,.05);color:#94a3b8;font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #2a2a3a}
+  .tool-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.04);color:#a1a1aa}
+  .tool-table td:first-child{color:#e2e8f0;font-weight:500}
+
+  .flow-steps{font-family:'Consolas',monospace;background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:20px 24px;font-size:.9rem;line-height:2.2;color:#a1a1aa;margin:1rem 0}
+  .flow-steps .pass{color:#4ade80}
+  .flow-steps .fail{color:#f87171}
+  .flow-steps .info{color:#60a5fa}
+
+  .persona-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:1.5rem 0}
+  .persona-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:14px;text-align:center}
+  .persona-card .p-icon{font-size:1.5rem;margin-bottom:4px}
+  .persona-card .p-role{font-size:.75rem;font-weight:600;color:#e2e8f0}
+  .persona-card .p-file{font-size:.65rem;color:#60a5fa;margin-top:2px}
+
+  .contact-card{display:inline-block;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:28px 44px;margin-top:1.5rem;text-align:center}
+  .contact-card .cc-name{font-size:1.2rem;font-weight:700;color:#f1f5f9}
+  .contact-card .cc-role{font-size:.9rem;color:#94a3b8;margin:4px 0 14px}
+  .contact-card .cc-item{font-size:.9rem;color:#a1a1aa;margin:4px 0}
+
+  .nav-hint{position:fixed;bottom:20px;right:20px;background:rgba(0,0,0,.6);color:#52525b;padding:8px 14px;border-radius:8px;font-size:.75rem;z-index:100}
+
+  @media(max-width:900px){.slide{padding:40px 30px}.title-slide h1{font-size:2rem}h2{font-size:1.7rem}.two-col{grid-template-columns:1fr}.persona-grid{grid-template-columns:repeat(2,1fr)}}
+  @media print{.slide{page-break-after:always;min-height:auto;padding:30px}.nav-hint{display:none}}
+</style>
+</head>
+<body>
+
+<div class="nav-hint">↓ Scroll through slides</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SLIDE 1: Title -->
+<!-- ═══════════════════════════════════════════════ -->
+<section class="slide title-slide">
+  <div class="date-info">Day 12 — 10th March 2026 — 6:00 PM to 8:00 PM</div>
+  <h1>Deployment + CI/CD +<br>Containerization + Monitoring</h1>
+  <p class="subtitle">From "Works on My Machine" to "Works Everywhere, Watches Itself"</p>
+  <div class="presenter">
+    <div class="presenter-avatar">BP</div>
+    <div class="presenter-info">
+      <div class="presenter-name">Basudev Panda</div>
+      <div class="presenter-role">Senior Manager — Data Scientist, MLOps Expert</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SLIDE 2: Where We Left Off -->
+<!-- ═══════════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">15 / 28</span>
+  <h2>Where We <span class="accent">Left Off</span></h2>
+  <p class="narrative">Yesterday, we built a complete ML system — from raw data to a working API. We trained 28 models, tracked every experiment, served predictions through a dashboard, and automated testing with CI. <em>But it all ran on my laptop.</em></p>
+
+  <div class="problem-box">
+    <h4>⚠️ The Laptop Problem</h4>
+    <p>If I close my laptop, the API dies. If my hard drive fails, the model is gone. If someone in another city needs a prediction, they can't reach it. A model on a laptop is a demo. Not a product.</p>
+  </div>
+
+  <p class="narrative">Today, we fix every one of those problems. We'll package it, ship it to the cloud, automate deployment, add drift detection, and make the system watch itself.</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SLIDE 3: Docker — The Container Story -->
+<!-- ═══════════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">16 / 28</span>
+  <h2>Containerization: <span class="accent">Docker</span></h2>
+  <p class="narrative">The first step to leaving the laptop behind is packaging. Docker takes our code, our model, our dependencies, and our UI — and seals them into a single, portable container. This container runs <em>identically</em> on my laptop, on your laptop, and in the cloud.</p>
+
+  <div class="two-col">
+    <div>
+      <div class="screenshot">
+        <img src="png1.png" alt="Docker Desktop — stroke-mlops:v2">
+      </div>
+      <p class="caption">png1: Docker Desktop showing stroke-mlops:v2 image</p>
+    </div>
+    <div>
+      <h3>What's Inside the Container</h3>
+      <div class="card">
+        <h4>📁 Application Code</h4>
+        <p>FastAPI server, preprocessing pipeline, all Python modules</p>
+      </div>
+      <div class="card">
+        <h4>🧠 Trained Model</h4>
+        <p>The champion model exported from MLflow — 490KB pickle file</p>
+      </div>
+      <div class="card">
+        <h4>🌐 Dashboard UI</h4>
+        <p>HTML + JS + CSS — the same interface you saw yesterday</p>
+      </div>
+      <div class="card">
+        <h4>📦 Dependencies</h4>
+        <p>Python 3.11, scikit-learn, pandas, FastAPI — all locked versions</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="highlight-box">
+    <p><strong>The teaching point:</strong> "It works on my machine" is no longer an excuse. The container IS the machine. Ship the container, ship the entire environment.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SLIDE 4: Cloud Run — Going Live -->
+<!-- ═══════════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">17 / 28</span>
+  <h2>Going Live: <span class="accent-green">Google Cloud Run</span></h2>
+  <p class="narrative">That container we just saw on my laptop? It's now running in Google's data center in Mumbai. Accessible from anywhere in the world. Let me prove it.</p>
+
+  <div class="screenshot">
+    <img src="png2.png" alt="Live URL — Prediction from Cloud Run">
+  </div>
+  <p class="caption">png2: Live prediction from Cloud Run URL — running in Mumbai, not my laptop</p>
+
+  <div class="highlight-box">
+    <p><strong>Look at the URL bar.</strong> That's not localhost. That's <code>stroke-api-xxx.asia-south1.run.app</code> — a public URL, accessible from any device, anywhere. I opened this on my phone. You can open it on yours. Right now.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SLIDE 5: Cloud Run Health -->
+<!-- ═══════════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">18 / 28</span>
+  <h2>Health Check from the <span class="accent-green">Cloud</span></h2>
+
+  <div class="screenshot">
+    <img src="png3.png" alt="Health endpoint from Cloud Run">
+  </div>
+  <p class="caption">png3: /health endpoint — model name, version, load time, all from the cloud</p>
+
+  <p class="narrative">The <code>/health</code> endpoint tells us the model is loaded, healthy, and ready to serve. Monitoring systems hit this endpoint every 30 seconds. If it ever returns "unhealthy," alerts fire.</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SLIDE 6: GCP Console — What's Running -->
+<!-- ═══════════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">19 / 28</span>
+  <h2>Inside <span class="accent">GCP Console</span></h2>
+  <p class="narrative">Let's look behind the curtain. This is what the cloud infrastructure looks like from the inside.</p>
+
+  <div class="two-col">
+    <div>
+      <div class="screenshot">
+        <img src="png4.png" alt="Cloud Run Dashboard">
+      </div>
+      <p class="caption">png4: Cloud Run service — stroke-api running in asia-south1</p>
+    </div>
+    <div>
+      <div class="screenshot">
+        <img src="png5.png" alt="Artifact Registry">
+      </div>
+      <p class="caption">png5: Artifact Registry — Docker image stored in GCP Mumbai</p>
+    </div>
+  </div>
+
+  <div class="screenshot">
+    <img src="png6.png" alt="Cloud Storage Buckets">
+  </div>
+  <p class="caption">png6: Cloud Storage — 3 buckets: incoming (patient data), scored (Excel output), reports (drift reports)</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SLIDE 7: CI/CD — The Automation Story -->
+<!-- ═══════════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">20 / 28</span>
+  <h2>CI/CD: <span class="accent-orange">The Robot That Deploys</span></h2>
+  <p class="narrative">How did the container get to Cloud Run? Nobody manually pushed it. Nobody SSHed into a server. Nobody clicked "deploy" in a console. <em>A robot did it.</em> Every time I push code to GitHub, two pipelines fire automatically.</p>
+
+  <div class="screenshot">
+    <img src="png7.png" alt="GitHub Actions — CI + CD both green">
+  </div>
+  <p class="caption">png7: GitHub Actions — CI (tests) and CD (deploy) — both green, fully automated</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SLIDE 8: CD Pipeline Steps -->
+<!-- ═══════════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">21 / 28</span>
+  <h2>What Happens Inside the <span class="accent-orange">CD Pipeline</span></h2>
+
+  <div class="screenshot">
+    <img src="png8.png" alt="CD Pipeline — expanded steps">
+  </div>
+  <p class="caption">png8: CD pipeline expanded — every step from install to deploy, all automated</p>
+
+  <div class="flow-steps">
+    <span class="info">→</span> Install dependencies<br>
+    <span class="info">→</span> Preprocess data<br>
+    <span class="info">→</span> Train 28 models with MLflow<br>
+    <span class="info">→</span> Evaluate champion model<br>
+    <span class="info">→</span> Export model for Docker<br>
+    <span class="pass">✓</span> Run 32 tests — all pass<br>
+    <span class="info">→</span> Authenticate with GCP (service account)<br>
+    <span class="info">→</span> Build Docker image<br>
+    <span class="info">→</span> Push to Artifact Registry<br>
+    <span class="pass">✓</span> Deploy to Cloud Run — <span class="pass">live in 8 minutes</span>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SLIDE 9: Service Account Explanation -->
+<!-- ═══════════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">22 / 28</span>
+  <h2>The <span class="accent-orange">Robot Account</span></h2>
+  <p class="narrative">GitHub Actions needs to talk to GCP. But we can't put a human password in a CI pipeline. So we create a <em>service account</em> — a robot with an ID badge and exactly the permissions it needs. Nothing more.</p>
+
+  <div class="two-col">
+    <div>
+      <div class="screenshot">
+        <img src="png9.png" alt="GitHub Secrets">
+      </div>
+      <p class="caption">png9: GitHub Secrets — 3 secrets stored securely</p>
+    </div>
+    <div>
+      <h3>How It Works</h3>
+      <div class="card">
+        <h4>1. Create Robot Account</h4>
+        <p>A service account named "github-deploy" — exists only for CI/CD</p>
+      </div>
+      <div class="card">
+        <h4>2. Give 3 Permissions</h4>
+        <p>Deploy to Cloud Run, push Docker images, act as service account. Nothing else.</p>
+      </div>
+      <div class="card">
+        <h4>3. Store Key as Secret</h4>
+        <p>The key file is stored in GitHub Secrets. The pipeline reads it at runtime. Never exposed in code.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SLIDE 10: Drift Detection -->
+<!-- ═══════════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">23 / 28</span>
+  <h2>Data <span class="accent-purple">Drift Detection</span></h2>
+  <p class="narrative">The model is deployed. It's serving predictions. But what happens when the patients walking in today look nothing like the patients from the training data? The model will silently give garbage predictions. <em>Unless we check.</em></p>
+
+  <div class="two-col">
+    <div>
+      <div class="solution-box">
+        <h4>✅ Clean Data — Pipeline Passes</h4>
+        <p>851 test records checked against reference data. 3 out of 10 features drifted (30%). Within threshold. Inference proceeds. Excel generated.</p>
+      </div>
+      <div class="screenshot">
+        <img src="png10.png" alt="Drift check pass — clean data">
+      </div>
+      <p class="caption">png10: Clean data passes drift check → 851 records scored</p>
+    </div>
+    <div>
+      <div class="problem-box">
+        <h4>❌ Drifted Data — Pipeline Halts</h4>
+        <p>Deliberately modified data: ages shifted +20 years, glucose doubled, everyone smokes. 5 of 10 features drifted (50%). Exceeds 30% threshold. Pipeline HALTED. No predictions made.</p>
+      </div>
+      <div class="screenshot">
+        <img src="png11.png" alt="Drift check fail — drifted data">
+      </div>
+      <p class="caption">png11: Drifted data blocked — pipeline halted before any bad predictions</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SLIDE 11: Evidently Report -->
+<!-- ═══════════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">24 / 28</span>
+  <h2>The <span class="accent-purple">Drift Report</span></h2>
+  <p class="narrative">When drift is detected, Evidently generates a detailed HTML report showing exactly which features drifted and by how much. This isn't a black box — the system tells you <em>why</em> it stopped.</p>
+
+  <div class="screenshot">
+    <img src="png12.png" alt="Evidently Drift Report">
+  </div>
+  <p class="caption">png12: Evidently AI drift report — per-feature analysis showing distribution shifts</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SLIDE 12: Excel Output -->
+<!-- ═══════════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">25 / 28</span>
+  <h2>The <span class="accent-green">Output</span>: Scored Excel Report</h2>
+  <p class="narrative">When clean data passes drift check, the pipeline scores every patient and writes a formatted Excel report. Two sheets: a summary with drift results and statistics, and the full scored data with color-coded predictions.</p>
+
+  <div class="two-col">
+    <div>
+      <div class="screenshot">
+        <img src="png13.png" alt="Excel Summary Sheet">
+      </div>
+      <p class="caption">png13: Summary sheet — drift result, total records, stroke count, confidence</p>
+    </div>
+    <div>
+      <div class="screenshot">
+        <img src="png14.png" alt="Excel Scored Results">
+      </div>
+      <p class="caption">png14: Scored Results — every patient with prediction, label, confidence (color-coded)</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SLIDE 13: Observability -->
+<!-- ═══════════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">26 / 28</span>
+  <h2>Observability: <span class="accent">The System Watches Itself</span></h2>
+  <p class="narrative">A deployed model without monitoring is a liability. We need to see every request, every latency spike, every error. Cloud Run gives us this <em>automatically</em> — zero configuration.</p>
+
+  <div class="two-col">
+    <div>
+      <div class="screenshot">
+        <img src="png15.png" alt="Cloud Run Metrics">
+      </div>
+      <p class="caption">png15: Cloud Run metrics — request count, latency, all auto-captured</p>
+    </div>
+    <div>
+      <div class="screenshot">
+        <img src="png16.png" alt="Cloud Run Structured Logs">
+      </div>
+      <p class="caption">png16: Structured JSON logs — every prediction traceable with patient details</p>
+    </div>
+  </div>
+
+  <div class="screenshot">
+    <img src="png17.png" alt="Alert Policy">
+  </div>
+  <p class="caption">png17: Alert policy — emails the team when unusual activity is detected</p>
+
+  <div class="highlight-box">
+    <p><strong>Every prediction is logged</strong> with patient details, confidence score, and latency. If a doctor questions a prediction, we can trace it back to the exact request, the exact model version, the exact timestamp.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SLIDE 14: Terraform IaC -->
+<!-- ═══════════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">27 / 28</span>
+  <h2>Infrastructure as Code: <span class="accent-orange">Terraform</span></h2>
+  <p class="narrative">Everything we set up in GCP — Cloud Run, storage buckets, service accounts, alert policies — we did manually. That works for a demo. But in production, manual setup means undocumented, unreproducible, and fragile infrastructure.</p>
+
+  <div class="screenshot">
+    <img src="png18.png" alt="Terraform files in VS Code">
+  </div>
+  <p class="caption">png18: 7 Terraform files — each one replaces manual gcloud commands</p>
+
+  <table class="tool-table">
+    <thead><tr><th>File</th><th>What It Creates</th><th>Replaces</th></tr></thead>
+    <tbody>
+      <tr><td>main.tf</td><td>Provider config + API enablement</td><td>gcloud services enable ...</td></tr>
+      <tr><td>cloud_run.tf</td><td>Cloud Run service (scale to zero)</td><td>gcloud run deploy ...</td></tr>
+      <tr><td>storage.tf</td><td>3 GCS buckets + Artifact Registry</td><td>gcloud storage buckets create ...</td></tr>
+      <tr><td>iam.tf</td><td>Service account + 3 permissions</td><td>gcloud iam service-accounts ...</td></tr>
+      <tr><td>monitoring.tf</td><td>Alert policies + email channel</td><td>Manual console setup</td></tr>
+      <tr><td>variables.tf</td><td>Project ID, region, email</td><td>Hardcoded values</td></tr>
+      <tr><td>outputs.tf</td><td>URLs, bucket names after apply</td><td>Copy-paste from console</td></tr>
+    </tbody>
+  </table>
+
+  <div class="highlight-box">
+    <p><strong>One command:</strong> <code>terraform apply</code> — creates all 13 resources. <strong>One command:</strong> <code>terraform destroy</code> — removes everything. Cost drops to ₹0 instantly. Infrastructure becomes version-controlled, auditable, and reproducible.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SLIDE 15: The Personas -->
+<!-- ═══════════════════════════════════════════════ -->
+<section class="slide">
+  <span class="slide-number">28 / 28</span>
+  <h2>10 Roles. One <span class="accent">Pipeline</span>.</h2>
+  <p class="narrative">In a real organization, what we built across two sessions involves 10 different specialists. Each one sees only their piece. The MLOps Lead sees the full picture — that's why the pipeline works end to end.</p>
+
+  <div class="persona-grid">
+    <div class="persona-card"><div class="p-icon">📊</div><div class="p-role">Data Engineer</div><div class="p-file">preprocess.py</div></div>
+    <div class="persona-card"><div class="p-icon">🧠</div><div class="p-role">Data Scientist</div><div class="p-file">train.py, evaluate.py</div></div>
+    <div class="persona-card"><div class="p-icon">⚙️</div><div class="p-role">ML Engineer</div><div class="p-file">app.py, pipeline.py</div></div>
+    <div class="persona-card"><div class="p-icon">🏗️</div><div class="p-role">Architect</div><div class="p-file">System design</div></div>
+    <div class="persona-card"><div class="p-icon">🔄</div><div class="p-role">DevOps</div><div class="p-file">ci.yml, cd.yml, Docker</div></div>
+    <div class="persona-card"><div class="p-icon">☁️</div><div class="p-role">Cloud Engineer</div><div class="p-file">terraform/*.tf</div></div>
+    <div class="persona-card"><div class="p-icon">🧪</div><div class="p-role">QA Engineer</div><div class="p-file">tests/*.py</div></div>
+    <div class="persona-card"><div class="p-icon">🔒</div><div class="p-role">Security</div><div class="p-file">iam.tf, .env, secrets</div></div>
+    <div class="persona-card"><div class="p-icon">📈</div><div class="p-role">SRE</div><div class="p-file">drift_check.py, alerts</div></div>
+    <div class="persona-card"><div class="p-icon">💼</div><div class="p-role">Business Owner</div><div class="p-file">Excel reports, UI</div></div>
+  </div>
+
+  <div class="solution-box">
+    <h4>✅ The E2E Visibility</h4>
+    <p>I could build this entire pipeline — from data preprocessing to cloud deployment to drift monitoring — because I've led teams across all these roles. Each specialist does their piece brilliantly. But someone needs to see the full picture and connect the dots. That's the MLOps Lead. That's E2E visibility.</p>
+  </div>
+
+  <div style="text-align:center; margin-top:2rem;">
+    <div class="contact-card">
+      <div class="cc-name">Basudev Panda</div>
+      <div class="cc-role">Senior Manager — Data Scientist, MLOps Expert</div>
+      <div class="cc-item">📧 basudevpanda@gmail.com</div>
+      <div class="cc-item">📱 +91 9611056001</div>
+    </div>
+    <p style="margin-top:1.5rem; color:#52525b; font-size:.9rem;">Thank you! Questions are welcome.</p>
+  </div>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MLOps — The E2E Visibility Problem</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #0a0a0f;
+    color: #e4e4e7;
+    overflow-x: hidden;
+  }
+
+  .slide {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px 80px;
+    position: relative;
+    border-bottom: 1px solid #1a1a2e;
+  }
+
+  .slide-number {
+    position: absolute;
+    top: 30px;
+    right: 40px;
+    font-size: 0.75rem;
+    color: #4a4a5a;
+    letter-spacing: 2px;
+  }
+
+  /* Title slide */
+  .title-slide {
+    background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 50%, #0a0a1a 100%);
+    text-align: center;
+    align-items: center;
+  }
+  .title-slide h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+  }
+  .title-slide .subtitle {
+    font-size: 1.4rem;
+    color: #94a3b8;
+    font-weight: 300;
+    margin-bottom: 2rem;
+  }
+  .title-slide .date-info {
+    font-size: 1rem;
+    color: #64748b;
+    margin-bottom: 1.5rem;
+  }
+  .presenter {
+    display: inline-flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 16px 28px;
+    margin-top: 1rem;
+  }
+  .presenter-avatar {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 1.1rem; color: #fff;
+  }
+  .presenter-info { text-align: left; }
+  .presenter-name { font-weight: 600; font-size: 1.05rem; color: #e2e8f0; }
+  .presenter-role { font-size: 0.85rem; color: #94a3b8; }
+
+  h2 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #f1f5f9;
+  }
+  h2 .accent { color: #60a5fa; }
+  h2 .accent-red { color: #f87171; }
+  h2 .accent-green { color: #4ade80; }
+
+  .lead {
+    font-size: 1.3rem;
+    color: #94a3b8;
+    max-width: 800px;
+    margin-bottom: 2rem;
+  }
+
+  /* Silo cards */
+  .silo-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin: 2rem 0;
+  }
+  .silo-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 20px 14px;
+    text-align: center;
+    position: relative;
+  }
+  .silo-card .silo-icon { font-size: 2rem; margin-bottom: 8px; }
+  .silo-card .silo-role { font-size: 0.85rem; font-weight: 600; color: #e2e8f0; margin-bottom: 6px; }
+  .silo-card .silo-knows {
+    font-size: 0.75rem;
+    color: #4ade80;
+    margin-bottom: 4px;
+  }
+  .silo-card .silo-doesnt {
+    font-size: 0.75rem;
+    color: #f87171;
+  }
+  .silo-wall {
+    position: absolute;
+    right: -8px;
+    top: 10%;
+    height: 80%;
+    width: 3px;
+    background: #f87171;
+    border-radius: 2px;
+  }
+
+  /* Blind spots */
+  .blind-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 1.5rem 0;
+  }
+  .blind-card {
+    background: rgba(248,113,113,0.05);
+    border: 1px solid rgba(248,113,113,0.15);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .blind-card .blind-role {
+    font-size: 0.8rem;
+    color: #fca5a5;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .blind-card .blind-says {
+    font-size: 0.95rem;
+    color: #a1a1aa;
+    font-style: italic;
+  }
+
+  /* Lead card */
+  .lead-section {
+    text-align: center;
+    margin: 2rem 0;
+  }
+  .lead-card {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(96,165,250,0.1), rgba(167,139,250,0.1));
+    border: 2px solid rgba(167,139,250,0.3);
+    border-radius: 16px;
+    padding: 30px 50px;
+    text-align: center;
+  }
+  .lead-card .lead-icon { font-size: 3rem; margin-bottom: 10px; }
+  .lead-card .lead-title { font-size: 1.3rem; font-weight: 700; color: #e2e8f0; }
+  .lead-card .lead-sub { font-size: 0.95rem; color: #a78bfa; margin-top: 4px; }
+
+  /* Spokes */
+  .spoke-container {
+    display: flex;
+    justify-content: center;
+    margin: 2rem 0;
+    position: relative;
+  }
+  .spoke-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    max-width: 900px;
+  }
+  .spoke-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    transition: border-color 0.3s;
+  }
+  .spoke-card:hover { border-color: rgba(96,165,250,0.4); }
+  .spoke-card .spoke-icon { font-size: 1.5rem; margin-bottom: 6px; }
+  .spoke-card .spoke-role { font-size: 0.75rem; font-weight: 600; color: #e2e8f0; }
+  .spoke-card .spoke-file { font-size: 0.7rem; color: #60a5fa; margin-top: 4px; }
+
+  /* Highlight */
+  .highlight-box {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 30px;
+    text-align: center;
+    background: linear-gradient(135deg, rgba(74,222,128,0.06), rgba(74,222,128,0.02));
+    border: 1px solid rgba(74,222,128,0.2);
+    border-radius: 12px;
+  }
+  .highlight-box p {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    line-height: 1.7;
+  }
+  .highlight-box em {
+    color: #4ade80;
+    font-style: normal;
+  }
+
+  /* Professor reality */
+  .prof-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin: 1.5rem 0;
+  }
+  .prof-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 18px;
+    text-align: center;
+  }
+  .prof-card .prof-dept {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #fb923c;
+    margin-bottom: 6px;
+  }
+  .prof-card .prof-teaches {
+    font-size: 0.85rem;
+    color: #a1a1aa;
+  }
+
+  /* Arrow connector */
+  .connector {
+    text-align: center;
+    font-size: 2rem;
+    color: #3a3a5a;
+    margin: 1rem 0;
+  }
+
+  /* Problem box */
+  .problem-box {
+    background: linear-gradient(135deg, rgba(248,113,113,0.08), rgba(248,113,113,0.02));
+    border: 1px solid rgba(248,113,113,0.2);
+    border-left: 4px solid #f87171;
+    border-radius: 8px;
+    padding: 24px 28px;
+    margin: 1.5rem 0;
+    max-width: 800px;
+  }
+  .problem-box h4 { color: #fca5a5; margin-bottom: 8px; font-size: 1.1rem; }
+  .problem-box p { color: #a1a1aa; font-size: 1rem; line-height: 1.7; }
+
+  .solution-box {
+    background: linear-gradient(135deg, rgba(74,222,128,0.08), rgba(74,222,128,0.02));
+    border: 1px solid rgba(74,222,128,0.2);
+    border-left: 4px solid #4ade80;
+    border-radius: 8px;
+    padding: 24px 28px;
+    margin: 1.5rem 0;
+    max-width: 800px;
+  }
+  .solution-box h4 { color: #86efac; margin-bottom: 8px; font-size: 1.1rem; }
+  .solution-box p { color: #a1a1aa; font-size: 1rem; line-height: 1.7; }
+
+  .contact-card {
+    display: inline-block;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 24px 40px;
+    margin-top: 1.5rem;
+    text-align: center;
+  }
+  .contact-card .cc-name { font-size: 1.2rem; font-weight: 700; color: #f1f5f9; }
+  .contact-card .cc-role { font-size: 0.9rem; color: #94a3b8; margin: 4px 0 12px; }
+  .contact-card .cc-item {
+    font-size: 0.9rem; color: #a1a1aa; margin: 4px 0;
+  }
+
+  @media (max-width: 900px) {
+    .slide { padding: 40px 30px; }
+    .silo-grid { grid-template-columns: repeat(2, 1fr); }
+    .spoke-grid { grid-template-columns: repeat(3, 1fr); }
+    .blind-grid { grid-template-columns: 1fr; }
+    .prof-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1: Title -->
+<section class="slide title-slide">
+  <div class="date-info">Day 12 — 10th March 2026 — 6:00 PM to 8:00 PM</div>
+  <h1>Deployment + CI/CD +<br>Containerization + Monitoring</h1>
+  <p class="subtitle">Taking ML from Laptop to Production Cloud</p>
+  <div class="presenter">
+    <div class="presenter-avatar">BP</div>
+    <div class="presenter-info">
+      <div class="presenter-name">Basudev Panda</div>
+      <div class="presenter-role">Senior Manager — Data Scientist, MLOps Expert</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: The Silo Problem -->
+<section class="slide">
+  <span class="slide-number">01 / 07</span>
+  <h2>The <span class="accent-red">Silo</span> Problem</h2>
+  <p class="lead">In every organization, each team sees only their piece. Nobody sees the full picture.</p>
+
+  <div class="silo-grid">
+    <div class="silo-card">
+      <div class="silo-wall"></div>
+      <div class="silo-icon">📊</div>
+      <div class="silo-role">Data Engineer</div>
+      <div class="silo-knows">✓ Knows pipelines</div>
+      <div class="silo-knows">✓ Knows SQL</div>
+      <div class="silo-doesnt">✗ Doesn't know ML</div>
+      <div class="silo-doesnt">✗ Doesn't know Docker</div>
+    </div>
+    <div class="silo-card">
+      <div class="silo-wall"></div>
+      <div class="silo-icon">🧠</div>
+      <div class="silo-role">Data Scientist</div>
+      <div class="silo-knows">✓ Knows models</div>
+      <div class="silo-knows">✓ Knows Python</div>
+      <div class="silo-doesnt">✗ Doesn't know CI/CD</div>
+      <div class="silo-doesnt">✗ Doesn't know cloud</div>
+    </div>
+    <div class="silo-card">
+      <div class="silo-wall"></div>
+      <div class="silo-icon">🔄</div>
+      <div class="silo-role">DevOps Engineer</div>
+      <div class="silo-knows">✓ Knows Docker</div>
+      <div class="silo-knows">✓ Knows CI/CD</div>
+      <div class="silo-doesnt">✗ Doesn't know ML</div>
+      <div class="silo-doesnt">✗ Doesn't know drift</div>
+    </div>
+    <div class="silo-card">
+      <div class="silo-wall"></div>
+      <div class="silo-icon">☁️</div>
+      <div class="silo-role">Cloud Engineer</div>
+      <div class="silo-knows">✓ Knows Terraform</div>
+      <div class="silo-knows">✓ Knows IAM</div>
+      <div class="silo-doesnt">✗ Doesn't know MLflow</div>
+      <div class="silo-doesnt">✗ Doesn't know APIs</div>
+    </div>
+    <div class="silo-card">
+      <div class="silo-icon">🧪</div>
+      <div class="silo-role">QA Engineer</div>
+      <div class="silo-knows">✓ Knows testing</div>
+      <div class="silo-knows">✓ Knows validation</div>
+      <div class="silo-doesnt">✗ Doesn't know models</div>
+      <div class="silo-doesnt">✗ Doesn't know infra</div>
+    </div>
+  </div>
+
+  <div class="problem-box">
+    <h4>⚠️ The Result</h4>
+    <p>Each team does their job well. But the handoffs between them break. The Data Scientist throws a model "over the wall" to DevOps. DevOps doesn't know how to serve it. Cloud Engineer provisions infra nobody uses correctly. QA doesn't know what to test. The model never reaches production.</p>
+  </div>
+</section>
+
+<!-- SLIDE 3: What Each Person Says -->
+<section class="slide">
+  <span class="slide-number">02 / 07</span>
+  <h2>What Each Person <span class="accent-red">Actually Says</span></h2>
+  <p class="lead">Sound familiar? These are real quotes from real teams.</p>
+
+  <div class="blind-grid">
+    <div class="blind-card">
+      <div class="blind-role">Data Scientist</div>
+      <div class="blind-says">"My model works in Jupyter. Deployment is not my problem."</div>
+    </div>
+    <div class="blind-card">
+      <div class="blind-role">DevOps Engineer</div>
+      <div class="blind-says">"They gave me a .pkl file. No documentation. No tests. How am I supposed to deploy this?"</div>
+    </div>
+    <div class="blind-card">
+      <div class="blind-role">Cloud Engineer</div>
+      <div class="blind-says">"I set up the infra. They said they need a VM. Now they want Kubernetes. Now they want serverless."</div>
+    </div>
+    <div class="blind-card">
+      <div class="blind-role">QA Engineer</div>
+      <div class="blind-says">"What do I even test? The model? The API? The data? Nobody told me the acceptance criteria."</div>
+    </div>
+    <div class="blind-card">
+      <div class="blind-role">Data Engineer</div>
+      <div class="blind-says">"I built the pipeline. The data is there. Why is the model still using last month's data?"</div>
+    </div>
+    <div class="blind-card">
+      <div class="blind-role">Business Owner</div>
+      <div class="blind-says">"It's been 6 months. The model still isn't in production. What are we paying these people for?"</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: The Lead's View -->
+<section class="slide" style="text-align:center; align-items:center;">
+  <span class="slide-number">03 / 07</span>
+  <h2>The <span class="accent-green">Lead's View</span></h2>
+  <p class="lead" style="margin:0 auto 2rem;">One person who sees every layer — from data to cloud to monitoring. That's why the pipeline works end to end.</p>
+
+  <div class="lead-section">
+    <div class="lead-card">
+      <div class="lead-icon">👨‍💼</div>
+      <div class="lead-title">MLOps Lead / Senior Manager</div>
+      <div class="lead-sub">Sees the full picture. Connects every team.</div>
+    </div>
+  </div>
+
+  <div class="connector">↕</div>
+
+  <div class="spoke-container">
+    <div class="spoke-grid">
+      <div class="spoke-card">
+        <div class="spoke-icon">📊</div>
+        <div class="spoke-role">Data Engineer</div>
+        <div class="spoke-file">preprocess.py</div>
+      </div>
+      <div class="spoke-card">
+        <div class="spoke-icon">🧠</div>
+        <div class="spoke-role">Data Scientist</div>
+        <div class="spoke-file">train.py, evaluate.py</div>
+      </div>
+      <div class="spoke-card">
+        <div class="spoke-icon">⚙️</div>
+        <div class="spoke-role">ML Engineer</div>
+        <div class="spoke-file">app.py, pipeline.py</div>
+      </div>
+      <div class="spoke-card">
+        <div class="spoke-icon">🔄</div>
+        <div class="spoke-role">DevOps</div>
+        <div class="spoke-file">ci.yml, cd.yml, Docker</div>
+      </div>
+      <div class="spoke-card">
+        <div class="spoke-icon">☁️</div>
+        <div class="spoke-role">Cloud Engineer</div>
+        <div class="spoke-file">terraform/*.tf</div>
+      </div>
+      <div class="spoke-card">
+        <div class="spoke-icon">🧪</div>
+        <div class="spoke-role">QA Engineer</div>
+        <div class="spoke-file">tests/*.py</div>
+      </div>
+      <div class="spoke-card">
+        <div class="spoke-icon">🔒</div>
+        <div class="spoke-role">Security</div>
+        <div class="spoke-file">iam.tf, .env, secrets</div>
+      </div>
+      <div class="spoke-card">
+        <div class="spoke-icon">📈</div>
+        <div class="spoke-role">SRE / Monitoring</div>
+        <div class="spoke-file">drift_check.py, alerts</div>
+      </div>
+      <div class="spoke-card">
+        <div class="spoke-icon">💼</div>
+        <div class="spoke-role">Business Owner</div>
+        <div class="spoke-file">Excel reports, UI</div>
+      </div>
+      <div class="spoke-card">
+        <div class="spoke-icon">🏗️</div>
+        <div class="spoke-role">Architect</div>
+        <div class="spoke-file">System design</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="highlight-box">
+    <p>I could build this entire pipeline because <em>I've worked across all these roles</em>.<br>Each colleague reports to me. I understand their language, their tools, their pain points.<br>That's <em>E2E visibility</em> — and that's what MLOps demands.</p>
+  </div>
+</section>
+
+<!-- SLIDE 5: The Academic Parallel -->
+<section class="slide">
+  <span class="slide-number">04 / 07</span>
+  <h2>The <span class="accent">Academic Parallel</span></h2>
+  <p class="lead">This silo problem exists in engineering colleges too. Each department teaches their slice. Nobody teaches the glue.</p>
+
+  <div class="prof-grid">
+    <div class="prof-card">
+      <div class="prof-dept">CS / AI Department</div>
+      <div class="prof-teaches">Teaches: ML algorithms, Python, Jupyter notebooks</div>
+    </div>
+    <div class="prof-card">
+      <div class="prof-dept">IT / Networks</div>
+      <div class="prof-teaches">Teaches: Cloud basics, networking, servers</div>
+    </div>
+    <div class="prof-card">
+      <div class="prof-dept">Software Engineering</div>
+      <div class="prof-teaches">Teaches: SDLC, testing, version control</div>
+    </div>
+    <div class="prof-card">
+      <div class="prof-dept">Data Science</div>
+      <div class="prof-teaches">Teaches: Statistics, EDA, model evaluation</div>
+    </div>
+  </div>
+
+  <div class="problem-box">
+    <h4>⚠️ The Gap</h4>
+    <p>A student graduates knowing how to train a model. But they have no idea how to deploy it, version it, monitor it, or automate it. They enter the industry and the first thing they hear is: "Great model. Now put it in production." And they freeze.</p>
+  </div>
+
+  <div class="solution-box">
+    <h4>✅ What Today's Session Fills</h4>
+    <p>The missing piece between "model works in notebook" and "model serves in production." Docker, CI/CD, cloud deployment, monitoring, drift detection, infrastructure as code — the glue that no single course covers.</p>
+  </div>
+</section>
+
+<!-- SLIDE 6: What We Built -->
+<section class="slide">
+  <span class="slide-number">05 / 07</span>
+  <h2>What We <span class="accent-green">Built</span> — The Full Pipeline</h2>
+  <p class="lead">In two sessions, we covered what 10 different roles do in a real MLOps team. One pipeline, one repo, one system.</p>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin:1.5rem 0;">
+    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:20px;">
+      <h3 style="color:#60a5fa; font-size:1rem; margin-bottom:12px;">Day 1 — Training to Serving</h3>
+      <p style="font-size:0.9rem; color:#a1a1aa; line-height:1.8;">
+        📊 Data preprocessing (Data Engineer)<br>
+        🧠 28 model experiments with MLflow (Data Scientist)<br>
+        📦 Model registry + versioning (ML Engineer)<br>
+        ✅ Automated quality gate (QA Engineer)<br>
+        🌐 FastAPI + Dashboard UI (ML Engineer)<br>
+        🧪 32 automated tests (QA Engineer)<br>
+        🔄 CI pipeline — GitHub Actions (DevOps)
+      </p>
+    </div>
+    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:20px;">
+      <h3 style="color:#a78bfa; font-size:1rem; margin-bottom:12px;">Day 2 — Deployment to Monitoring</h3>
+      <p style="font-size:0.9rem; color:#a1a1aa; line-height:1.8;">
+        🐳 Docker containerization (DevOps)<br>
+        🚀 CD pipeline — auto-deploy (DevOps)<br>
+        ☁️ Cloud Run deployment (Cloud Engineer)<br>
+        📂 Cloud Storage buckets (Cloud Engineer)<br>
+        🔑 Service accounts + IAM (Security)<br>
+        📊 Drift detection — Evidently (SRE)<br>
+        📈 Observability + alerts (SRE)<br>
+        📝 Terraform IaC (Cloud Engineer)<br>
+        📊 Inference pipeline → Excel (ML Engineer)
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7: The Invitation -->
+<section class="slide" style="text-align:center; align-items:center;">
+  <span class="slide-number">06 / 07</span>
+  <h2>Now Let Me <span class="accent">Show You</span></h2>
+
+  <div class="highlight-box" style="margin-bottom:2rem;">
+    <p>Everything you're about to see is <em>live</em>.<br>
+    Real code. Real cloud. Real deployment.<br>
+    Built in 2 days. Accessible from your phone right now.</p>
+  </div>
+
+  <p style="color:#71717a; font-size:1.1rem; margin-bottom:2rem;">Let's walk through each layer — from container to cloud to monitoring.</p>
+
+  <div class="contact-card">
+    <div class="cc-name">Basudev Panda</div>
+    <div class="cc-role">Senior Manager — Data Scientist, MLOps Expert</div>
+    <div class="cc-item">📧 basudevpanda@gmail.com</div>
+    <div class="cc-item">📱 +91 9611056001</div>
+  </div>
+</section>
+
+</body>
+</html>
